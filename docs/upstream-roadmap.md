@@ -1,8 +1,9 @@
 # Upstream Roadmap: Deterministic Wiki-Quality Tooling
 
-**Status:** approved — implementation in progress (PR0 in review, PR1 next)
+**Status:** approved — PR0 + PR1 merged; PR1.5 / PR2 unscheduled
 **Created:** 2026-05-21
 **Last review:** 2026-05-26 (decisions logged below)
+**Last update:** 2026-05-26 (PR0 #2 + PR1 #3 squash-merged onto main; chore side-channel merged)
 **PR tracker:** see §0.1 below
 **Scope:** Promote vault-proven quality tooling (lint aggregator, enforcement hook, issue-tracking workflow, maintenance utilities) into the `agentic-knowledge-management` plugin so every consuming vault — not just one — gets deterministic, automated quality and consistency.
 **Source vault:** `ai-secondbrain` (the reference vault these tools were battle-tested in).
@@ -27,10 +28,10 @@ Closed before implementation. Each maps to a section below.
 Updated as each PR is submitted, merged, or revised. The roadmap doc itself
 stays on `main`; this section is the canonical pointer to current PR state.
 
-| PR | Status | Link | Branch |
+| PR | Status | Link | Squash-commit |
 |---|---|---|---|
-| **PR0** | open, in review | [#2](https://github.com/philippsied/agent-based-knowledge-management/pull/2) | `feat/pr0-vault-root-resolver` |
-| **PR1** | not started | — | `feat/pr1-lint-aggregator` (planned) |
+| **PR0** | merged | [#2](https://github.com/philippsied/agent-based-knowledge-management/pull/2) | `5b42d30` |
+| **PR1** | merged | [#3](https://github.com/philippsied/agent-based-knowledge-management/pull/3) | `a83bdf3` |
 | **PR1.5** | not started | — | — |
 | **PR2** | not started | — | — |
 | **PR3a** | not started | — | — |
@@ -39,9 +40,16 @@ stays on `main`; this section is the canonical pointer to current PR state.
 | **PR5** | not started | — | — |
 
 Side-channel: `chore/v1.7-release-prep` (auto-hook artefact from the 2026-05-26
-session — Plugin-Rename + v1.7.0 CHANGELOG + wiki-ingest cherry-pick). Not part
-of the roadmap proper. Pushed but unmerged; decide post-PR0 whether to
-fast-forward onto `main` or land via separate PR.
+session — Plugin-Rename + v1.7.0 CHANGELOG + wiki-ingest cherry-pick). Merged
+onto `main` via merge-commit `09638a8` on 2026-05-26. Branch deleted.
+
+### Pre-flight blocker for PR3b
+
+Running `make lint` against the plugin repo's own `wiki/` after PR1 merge
+reports **183 errors + 37 warns + 1 info** (snapshot 2026-05-26). The §5 PR3b
+row already flags this: "any pre-existing ERROR/WARN findings need cleanup PRs
+or explicit allowlisting first, so CI starts green." Resolving this is a
+prerequisite for PR3b but does **not** block PR1.5 or PR2.
 
 ---
 
