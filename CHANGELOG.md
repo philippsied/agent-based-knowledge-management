@@ -1,6 +1,35 @@
 # Changelog
 
-All notable changes to claude-obsidian. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/).
+All notable changes to agentic-knowledge-management. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/).
+
+## [Unreleased]
+
+### Added (PR1 — canonical lint aggregator, per `docs/upstream-roadmap.md` §5)
+
+- **`scripts/run-lint.sh`** — single-runner wiki-quality lint aggregator. Calls every deterministic check (`spaced_filenames`, `spaced_wikilinks_body`, `orphans`, `dead_link_targets`, `frontmatter_gaps`, `terminology`, `title_overlap`) and emits a structured JSON summary with **per-check severity** (`error` / `warn` / `info`) plus a totals block. Required for the Tier-1 (pre-commit) and Tier-2 (CI) gates that ship in subsequent PRs (PR3a / PR3b).
+- **`scripts/lint-orphans.py`** — ported from the reference vault, now uses the resolver from PR0 and a case-insensitive path index (the source script's `os.path.isfile` slash-form was case-sensitive on tmpfs).
+- **`tests/test_lint_orphans.py`** — 4 cases: orphan detection, argv form, missing-wiki guard, plain output.
+- **`tests/test_run_lint.sh`** — 23 cases covering the JSON schema, every check name, seeded findings, report-file writing, and the resolver fallback.
+- **`make lint`** target — runs `scripts/run-lint.sh` against the current vault.
+- **`make test-lint-orphans` / `make test-run-lint`** targets, wired into the default `test` target.
+
+### Changed
+
+- **`skills/wiki-lint/SKILL.md`** — adds a "Deterministic engine first, judgment second" preamble pointing at `scripts/run-lint.sh` as the canonical entry point; LLM-judgment checks now layer on top of the aggregator's output instead of duplicating its work.
+
+### Severity defaults
+
+| Check | Severity |
+|---|---|
+| `spaced_filenames` | error |
+| `spaced_wikilinks_body` | error |
+| `terminology` | pass-through (error / warn from `lint-terminology.py`) |
+| `frontmatter_gaps` | warn |
+| `orphans` | warn |
+| `dead_link_targets` | warn |
+| `title_overlap` | info |
+
+Configurable severity overrides ship in PR1.5+ (JSON-Schema for frontmatter) or PR3b (CI gate config); for now the defaults are hardcoded.
 
 ## [1.6.0] - 2026-04-24
 

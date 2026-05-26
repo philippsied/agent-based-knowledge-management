@@ -13,6 +13,31 @@ Run lint after every 10-15 ingests, or weekly. Ask before auto-fixing anything. 
 
 ---
 
+## Deterministic engine first, judgment second
+
+Before applying judgment-based checks, run the deterministic aggregator. It
+covers every check that can be answered without an LLM (spaced filenames,
+spaced wikilinks in bodies, orphans, dead links, frontmatter gaps,
+bilingual-terminology, title-overlap) and emits a JSON summary with a per-check
+severity (`error` / `warn` / `info`) used by the commit-time and CI gates:
+
+```bash
+# Default: writes wiki/meta/lint-report-YYYY-MM-DD.md and prints a summary
+scripts/run-lint.sh
+
+# JSON only (for pipelines / dashboards):
+scripts/run-lint.sh --json
+```
+
+The aggregator resolves the vault root via `KM_VAULT_PATH` (env) → positional
+arg → cwd, so it works correctly whether the plugin is run from a marketplace
+install (`~/.claude/plugins/...`) or from a checked-out repo. The deterministic
+pass is the **engine** for everything below — only apply judgment checks
+(stale claims, missing cross-refs, semantic duplication) on top of its output,
+never as a replacement.
+
+---
+
 ## Lint Checks
 
 Work through these in order:
