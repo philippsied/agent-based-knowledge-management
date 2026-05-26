@@ -46,7 +46,11 @@ import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-VAULT_ROOT = Path(__file__).resolve().parent.parent
+# Resolver: KM_VAULT_PATH env -> argv -> cwd. See lib/vault_root.py.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
+from vault_root import resolve_vault_root  # noqa: E402
+
+VAULT_ROOT = resolve_vault_root()
 WIKI_DIR = VAULT_ROOT / "wiki"
 
 EXCLUDE_TYPES = {"meta", "fold"}
