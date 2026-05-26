@@ -33,6 +33,10 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Iterator
 
+# Resolver: KM_VAULT_PATH env -> argv -> cwd. See lib/vault_root.py.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
+from vault_root import resolve_wiki_root  # noqa: E402
+
 VALID_DNT = {"term-of-art", "eigenname", "coined", "hybrid"}
 TERMBASE_REL = "meta/termbase.md"
 
@@ -219,12 +223,13 @@ def format_markdown(findings: list[Finding]) -> str:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("root", nargs="?", default="wiki", help="Wiki root directory")
+    parser.add_argument("root", nargs="?", default=None,
+                        help="Wiki root directory (default: $KM_VAULT_PATH/wiki, or ./wiki)")
     parser.add_argument("--json", action="store_true", help="Emit JSON instead of Markdown")
     parser.add_argument("--strict", action="store_true", help="Exit 2 on any ERROR")
     args = parser.parse_args(argv)
 
-    wiki_root = Path(args.root).resolve()
+    wiki_root = resolve_wiki_root(args.root)
     if not wiki_root.is_dir():
         print(f"ERROR: {wiki_root} is not a directory", file=sys.stderr)
         return 2

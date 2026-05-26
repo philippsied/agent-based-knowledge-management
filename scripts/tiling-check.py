@@ -40,13 +40,17 @@ import urllib.request
 from datetime import datetime
 from pathlib import Path
 
+# Resolver: KM_VAULT_PATH env -> argv -> cwd. See lib/vault_root.py.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
+from vault_root import resolve_vault_root  # noqa: E402
+
 DEFAULT_OLLAMA_URL = "http://127.0.0.1:11434"
 DEFAULT_MODEL = "nomic-embed-text"
 OLLAMA_TIMEOUT_SEC = 3
 EMBED_TIMEOUT_SEC = 30
 MAX_RESPONSE_BYTES = 4 * 1024 * 1024  # 4 MB; embeddings can be ~10 KB each
 
-VAULT_ROOT = Path(__file__).resolve().parent.parent
+VAULT_ROOT = resolve_vault_root()
 WIKI_DIR = VAULT_ROOT / "wiki"
 META_DIR = VAULT_ROOT / ".vault-meta"
 CACHE_PATH = META_DIR / "tiling-cache.json"

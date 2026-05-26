@@ -26,6 +26,10 @@ import sys
 from itertools import combinations
 from pathlib import Path
 
+# Resolver: KM_VAULT_PATH env -> argv -> cwd. See lib/vault_root.py.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
+from vault_root import resolve_wiki_root  # noqa: E402
+
 SKIP_NAMES = {
     "index.md", "hot.md", "log.md", "overview.md", "_index.md",
     "dashboard.md", "Wiki-Map.md", "Wiki Map.md", "getting-started.md",
@@ -71,12 +75,13 @@ def find_overlaps(pages: list[Path], threshold: float) -> list[tuple[float, Path
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("root", nargs="?", default="wiki", help="Wiki root directory")
+    parser.add_argument("root", nargs="?", default=None,
+                        help="Wiki root directory (default: $KM_VAULT_PATH/wiki, or ./wiki)")
     parser.add_argument("threshold", nargs="?", type=float, default=0.55,
                         help="Jaccard threshold, default 0.55")
     args = parser.parse_args(argv)
 
-    root = Path(args.root).resolve()
+    root = resolve_wiki_root(args.root)
     if not root.is_dir():
         print(f"ERROR: {root} is not a directory", file=sys.stderr)
         return 2
