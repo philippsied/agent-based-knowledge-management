@@ -1,8 +1,9 @@
 # Upstream Roadmap: Deterministic Wiki-Quality Tooling
 
-**Status:** approved — implementation in progress (PR0 next)
+**Status:** approved — implementation in progress (PR0 in review, PR1 next)
 **Created:** 2026-05-21
 **Last review:** 2026-05-26 (decisions logged below)
+**PR tracker:** see §0.1 below
 **Scope:** Promote vault-proven quality tooling (lint aggregator, enforcement hook, issue-tracking workflow, maintenance utilities) into the `agentic-knowledge-management` plugin so every consuming vault — not just one — gets deterministic, automated quality and consistency.
 **Source vault:** `ai-secondbrain` (the reference vault these tools were battle-tested in).
 **Target repo:** `philippsied/agent-based-knowledge-management` (fork). No upstream PRs to `AgriciDaniel/claude-obsidian` planned — fork is the production line.
@@ -20,6 +21,27 @@ Closed before implementation. Each maps to a section below.
 | D5 | **Env-var name = `KM_VAULT_PATH`** (not `VAULT_PATH`). | Namespaced; consistent with the vault hook's existing `KM_PLUGIN_REPO`; no collision with HashiCorp Vault. | §4, §5 PR0 |
 | D6 | **Target = fork only.** No PR back to `AgriciDaniel/claude-obsidian`. | Upstream is push-disabled; fork is the production line. Reduces coordination overhead. | §1 (header) |
 | D7 | **Roadmap committed to `main` in the fork** before PR0 (no PR for the doc itself). | Doc is reference material, not code; anchorable from subsequent PR descriptions. | meta — not in doc body |
+
+## 0.1 PR status tracker
+
+Updated as each PR is submitted, merged, or revised. The roadmap doc itself
+stays on `main`; this section is the canonical pointer to current PR state.
+
+| PR | Status | Link | Branch |
+|---|---|---|---|
+| **PR0** | open, in review | [#2](https://github.com/philippsied/agent-based-knowledge-management/pull/2) | `feat/pr0-vault-root-resolver` |
+| **PR1** | not started | — | `feat/pr1-lint-aggregator` (planned) |
+| **PR1.5** | not started | — | — |
+| **PR2** | not started | — | — |
+| **PR3a** | not started | — | — |
+| **PR3b** | not started | — | — |
+| **PR4** | not started | — | — |
+| **PR5** | not started | — | — |
+
+Side-channel: `chore/v1.7-release-prep` (auto-hook artefact from the 2026-05-26
+session — Plugin-Rename + v1.7.0 CHANGELOG + wiki-ingest cherry-pick). Not part
+of the roadmap proper. Pushed but unmerged; decide post-PR0 whether to
+fast-forward onto `main` or land via separate PR.
 
 ---
 
