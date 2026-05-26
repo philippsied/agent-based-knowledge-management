@@ -2,7 +2,16 @@
 
 All notable changes to agentic-knowledge-management. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/).
 
-## [Unreleased]
+## [1.8.0] - 2026-05-26
+
+First two PRs of the [upstream roadmap](docs/upstream-roadmap.md) for deterministic wiki-quality tooling. PR0 lays the portability foundation; PR1 ships the canonical lint aggregator on top of it.
+
+### Added (PR0 — vault-root resolver, per `docs/upstream-roadmap.md` §5)
+
+- **`lib/vault_root.py` + `lib/vault_root.sh`** — single source of truth for "where is the vault". Resolution order: `KM_VAULT_PATH` (env) → positional CLI arg → cwd. Cwd default makes a marketplace-installed plugin operate on the user's vault rather than on its own install directory under `~/.claude/plugins/`. Env override is for hooks, CI jobs, and other contexts where cwd is not the vault.
+- **Resolver-routing**: `scripts/tiling-check.py`, `scripts/boundary-score.py`, `scripts/lint-terminology.py`, `scripts/lint-title-overlap.py` no longer reference `__file__` for `VAULT_ROOT`. Fixes the plugin-is-vault path conflation (§2.3 of the roadmap) that would have silently mis-resolved every script's vault root once the plugin was installed via the marketplace.
+- **`tests/test_vault_root.py` (10 cases) + `tests/test_vault_root.sh` (8 cases)** — env > argv > cwd precedence, tilde expansion, empty-env fall-through.
+- **`make test-vault-root` / `make test-terminology` / `make test-title-overlap`** targets, wired into default `test`.
 
 ### Added (PR1 — canonical lint aggregator, per `docs/upstream-roadmap.md` §5)
 
@@ -17,7 +26,7 @@ All notable changes to agentic-knowledge-management. Format: [Keep a Changelog](
 
 - **`skills/wiki-lint/SKILL.md`** — adds a "Deterministic engine first, judgment second" preamble pointing at `scripts/run-lint.sh` as the canonical entry point; LLM-judgment checks now layer on top of the aggregator's output instead of duplicating its work.
 
-### Severity defaults
+### Severity defaults (`scripts/run-lint.sh`)
 
 | Check | Severity |
 |---|---|
@@ -30,6 +39,10 @@ All notable changes to agentic-knowledge-management. Format: [Keep a Changelog](
 | `title_overlap` | info |
 
 Configurable severity overrides ship in PR1.5+ (JSON-Schema for frontmatter) or PR3b (CI gate config); for now the defaults are hardcoded.
+
+### Known follow-up
+
+Running `make lint` against this repo's own `wiki/` after the v1.8.0 cut reports **183 errors + 37 warns + 1 info**. This is the pre-flight cleanup blocker for PR3b's CI gate (see `docs/upstream-roadmap.md` §0.1 *Pre-flight blocker for PR3b*); it does not block PR1.5 or PR2.
 
 ## [1.7.0] - 2026-05-21
 
