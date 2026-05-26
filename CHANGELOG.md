@@ -31,6 +31,13 @@ All notable changes to agentic-knowledge-management. Format: [Keep a Changelog](
 
 Configurable severity overrides ship in PR1.5+ (JSON-Schema for frontmatter) or PR3b (CI gate config); for now the defaults are hardcoded.
 
+## [1.7.0] - 2026-05-21
+
+### Added
+
+- **doc-pipeline skill + `/doc-pipeline` command**: 4-stage document→ingest pipeline. Stage 1 deterministic raw conversion (`markit` + a `pandoc` fidelity reference, with `.doc`→docx and `.pptm`→pptx pre-handling). Stage 2 QC pass annotating conversion fidelity, language, clarity, redundancy, verbosity, currency, links, sources, footnotes, tables and Mermaid-diagram opportunities as inline `<!-- REVIEW -->` comments without altering content. Stage 3 human approval gate. Stage 4 annotation stripper producing a clean file for `wiki-ingest`. Checkworthy facts are flagged; web fact-checking runs on request.
+- `skills/doc-pipeline/scripts/convert-doc.sh` and `finalize-md.sh` — deterministic conversion and approval-gated finalize (preserve Markdown hard breaks).
+
 ## [1.6.0] - 2026-04-24
 
 ### Added (DragonScale Mechanism 4, opt-in)
