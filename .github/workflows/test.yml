@@ -1,0 +1,46 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: make test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install system deps
+        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Run tests
+        run: make test
+
+  lint:
+    name: wiki-quality lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install system deps
+        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Run lint
+        run: |
+          bash scripts/run-lint.sh --json > /tmp/lint.json
+          jq . /tmp/lint.json
+          ERROR_COUNT=$(jq -r '.totals.error // 0' /tmp/lint.json)
+          echo "Lint error count: $ERROR_COUNT"
+          if [ "$ERROR_COUNT" -ne 0 ]; then
+            echo "Lint errors present — failing job."
+            exit 1
+          fi
