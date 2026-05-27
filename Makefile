@@ -1,7 +1,7 @@
 # agentic-knowledge-management Makefile
 # Test runner entry points for DragonScale, lint tooling, and the vault-root resolver.
 
-.PHONY: test test-address test-tiling test-boundary test-vault-root test-terminology test-title-overlap test-lint-orphans test-run-lint test-sync-versions lint sync-versions release setup-dragonscale clean-test-state help
+.PHONY: test test-address test-tiling test-boundary test-vault-root test-terminology test-title-overlap test-lint-orphans test-run-lint test-sync-versions lint sync-versions release setup-dragonscale clean clean-test-state help
 
 help:
 	@echo "agentic-knowledge-management developer targets:"
@@ -19,6 +19,7 @@ help:
 	@echo "  make test-run-lint         scripts/run-lint.sh aggregator tests"
 	@echo "  make test-sync-versions    bin/sync-versions.sh tests"
 	@echo "  make setup-dragonscale     Run bin/setup-dragonscale.sh against this vault"
+	@echo "  make clean                 Remove local Python caches and .DS_Store"
 	@echo "  make clean-test-state      Remove runtime lockfiles and tiling cache"
 
 test: test-vault-root test-address test-tiling test-boundary test-terminology test-title-overlap test-lint-orphans test-run-lint test-sync-versions
@@ -75,6 +76,10 @@ release:
 
 setup-dragonscale:
 	@bash bin/setup-dragonscale.sh
+
+clean:
+	@rm -rf lib/__pycache__ scripts/__pycache__ */__pycache__ .DS_Store
+	@echo "Cleaned local caches."
 
 clean-test-state:
 	@rm -f .vault-meta/.address.lock .vault-meta/.tiling.lock .vault-meta/tiling-cache.json .vault-meta/tiling-cache.*.tmp

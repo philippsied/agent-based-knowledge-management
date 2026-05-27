@@ -18,6 +18,15 @@ When adopting a pattern from another project, plugin, or article:
 
 ---
 
+## 2026-05-28 — Thino plugin redistribution — license unverified (TODO)
+
+- Origin: Track A repo-cleanup pass (concurrent-grove plan); attempt to slim the bundled Obsidian plugin payload.
+- Adopted: nothing yet — the planned step was to vendor only `data.json` and have `bin/setup-vault.sh` re-download `main.js` / `manifest.json` / `styles.css` from the Thino GitHub releases (analogous to the existing Excalidraw pattern).
+- Adapted: deferred. The plugin self-identifies as "Closed source" in its `manifest.json`, and the sandbox in which this cleanup ran blocks both `gh api` (denied access to `~/.config/gh`) and `curl https://raw.githubusercontent.com/Quorafind/Obsidian-Thino/.../LICENSE`. License terms could therefore not be verified from this session. Until a human reviewer confirms the upstream LICENSE permits redistribution of the release binaries via setup-vault.sh, the Thino bundle remains vendored as-is (no deletion, no setup-vault.sh extension, no `.gitignore` block, no `ATTRIBUTION.md` disclaimer change).
+- Skills / scripts touched: none (intentionally — the cleanup was aborted at the license-check gate).
+- Why we found it useful: documenting the abort prevents the next contributor from repeating the same fetch attempts and rediscovering the sandbox limitation. The next step is a human-driven license check on `https://github.com/Quorafind/Obsidian-Thino` (LICENSE file or README) and, if compatible, executing the planned vendor-to-fetch swap.
+- Risks / caveats: continuing to ship the Thino binaries without a verified license is a legal-distribution risk; do not deepen the dependency until cleared. Also: `data.json` is currently whitelisted in `.gitignore`, so user-state can drift into commits — review when the license question is settled.
+
 ## 2026-05-19 — Bilingual terminology policy (schema-level)
 
 - Origin: user-supplied concept document (Philipp Sieder, 2026-05-19); cross-checked against general translation-memory and term-base literature.
