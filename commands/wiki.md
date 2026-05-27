@@ -1,5 +1,5 @@
 ---
-description: Bootstrap or check the claude-obsidian wiki vault. Reads the wiki skill and runs setup workflow.
+description: Bootstrap or check the agentic-knowledge-management wiki vault. Reads the wiki skill and runs setup workflow.
 ---
 
 Read the `wiki` skill. Then run the setup workflow:
