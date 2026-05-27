@@ -1,6 +1,6 @@
-# claude-obsidian Hooks
+# agentic-knowledge-management Hooks
 
-Plugin hooks for the claude-obsidian wiki vault. All hooks are defined in `hooks.json`.
+Plugin hooks for the agentic-knowledge-management wiki vault. All hooks are defined in `hooks.json`.
 
 ## Events
 
@@ -11,15 +11,22 @@ Plugin hooks for the claude-obsidian wiki vault. All hooks are defined in `hooks
 | `PostToolUse` | command | Auto-commits any wiki/ or .raw/ changes after Write or Edit tool calls. Guarded by `[ -d .git ]` so it never errors in non-git directories, and by `git diff --cached --quiet` so it never creates empty commits. |
 | `Stop` | prompt | Updates `wiki/hot.md` at the end of every Claude response with a brief summary of what changed. |
 
-## Known Issue: Plugin Hooks STDOUT Bug
+## Hook Output Contract (resolved)
 
-`anthropics/claude-code#10875` documents that **plugin hook STDOUT may not be captured** by Claude Code, while identical inline hooks in `settings.json` work correctly.
+Earlier versions of this README documented `anthropics/claude-code#10875` ("Plugin hooks JSON output not captured") as an active blocker. That issue is **closed (completed)** as of 2025-11-06. Per @dicksontsai's clarification in the thread, the root cause was never a missing STDOUT capture but a mixed-signaling pattern in hook authors' code.
 
-**Impact**: If this bug is active in your Claude Code version, the prompt-type SessionStart and PostCompact hooks may not inject context as expected.
+**The rule**: a hook must commit to one output contract and not mix them.
 
-**Workaround**: The command-type SessionStart hook (`cat wiki/hot.md`) is the canonical safety check. It relies on STDOUT capture for context injection, so test against this issue if hot cache restoration fails. As a fallback, copy the hook config from `hooks.json` into your user-level `~/.claude/settings.json` instead of relying on plugin hooks.
+- **Exit-2 + stderr**: write the block reason to stderr, exit with code 2. Claude Code treats whatever is on stderr as the block message. Simple, no JSON parsing.
+- **Advanced JSON API + stdout + exit 0**: write a structured JSON payload (e.g. `{"continue": false, "stopReason": "..."}`) to stdout, exit 0. Claude Code parses and acts on the JSON.
 
-**Test for the bug**: After installing the plugin, open a fresh Claude Code session in a directory containing a populated `wiki/hot.md`. Ask Claude "what's in the hot cache?". If Claude has no idea, the STDOUT bug is active in your version.
+Mixing the two (JSON to stderr with exit 2, or JSON to stdout with exit 2) used to behave inconsistently between inline hooks and plugin hooks; the inconsistency is what 10875 tracked. After the upstream fix, the behavior is uniform: pick one approach.
+
+**Hooks in this plugin are on the safe path**: every command hook ends in `|| true` so it always exits 0, and any meaningful output goes to stdout. No JSON-to-stderr or exit-2 patterns. Compatible with both inline and plugin installs.
+
+For Ruby-based hook stacks, see the parallel fix landed in `gabriel-dehan/claude_hooks#15` (merged 2026-01-04), which rewrites Stop hooks in the `claude_hooks` gem from `stderr + exit 2` to `stdout + exit 0`.
+
+**Self-test** (still useful as a smoke check): open a fresh Claude Code session in a directory containing a populated `wiki/hot.md`. Ask "what's in the hot cache?". Claude should be able to answer from the SessionStart-injected context.
 
 ## Non-Vault Sessions
 
