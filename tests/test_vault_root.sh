@@ -59,6 +59,21 @@ KM_VAULT_PATH="~" got="$(km_resolve_vault_root)"
 expected_home="$(cd "$HOME" && pwd -P)"
 assert_eq "env ~ expands to \$HOME" "$expected_home" "$got"
 
+# 6. python helper missing -> wrapper exits non-zero
+# The shell wrapper delegates to lib/vault_root.py; if that file disappears
+# (or the path is wrong) python3 reports "No such file or directory" and the
+# function should propagate a non-zero exit. Test by overriding _VAULT_ROOT_PY,
+# which avoids brittle PATH or `command -v` stubbing.
+saved_py="$_VAULT_ROOT_PY"
+_VAULT_ROOT_PY="/nonexistent/path/to/vault_root.py"
+unset KM_VAULT_PATH
+if km_resolve_vault_root /tmp >/dev/null 2>&1; then
+  no "python helper missing -> non-zero exit" "non-zero exit" "exit 0"
+else
+  ok "python helper missing -> non-zero exit"
+fi
+_VAULT_ROOT_PY="$saved_py"
+
 # Cleanup
 rm -rf "$TMP1" "$TMP2" "$TMP_ENV" "$TMP_ARGV" "$TMP_CWD"
 
