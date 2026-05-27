@@ -1,0 +1,81 @@
+{
+  "skill_name": "research-brief",
+  "description": "Structural evaluation of the research-brief skill: construct and audit modes, W1-W12 convention enforcement, and integration with the wiki/meta/research-queue.md row updates. Test cases assume the vault at ~/ai-secondbrain is in the state captured on 2026-05-27 (queue rows R-2026-001..R-2026-009 with R-2026-001/002/003 done, R-2026-004 and R-2026-006/007/008 carrying hand-written briefs without brief_version: 1, R-2026-005/009 still _to brief_).",
+  "evals": [
+    {
+      "id": 1,
+      "name": "construct-dach-task-from-queue",
+      "prompt": "schreib mir den Brief für R-2026-005",
+      "expected_output": "A new brief file at wiki/meta/brief-R-2026-005-<slug>.md carrying brief_version: 1, all twelve convention sections present and passing, and the research-queue.md row for R-2026-005 updated (Brief column points to the new wikilink, Updated column = today). Because R-2026-005 has program: VAL (DACH-flavored), the W6 hard gate fires and the brief includes an explicit ≥30% German-language primary-source quota. The skill must surface the Phase-1 frame-check question to the user before composing (Auto Mode is intentionally overridden in this phase).",
+      "files": [],
+      "assertions": [
+        {"text": "Phase-1 frame-check question surfaced to user before any file is written"},
+        {"text": "Exactly one new file created under wiki/meta/ matching brief-R-2026-005-*.md"},
+        {"text": "Brief frontmatter contains brief_version: 1"},
+        {"text": "Brief frontmatter contains conventions_applied listing W1-W12"},
+        {"text": "Brief body contains a Meta-question section with all four sub-elements (Assumed framing, Alternative framings considered, Why the chosen framing won, Tripwire)"},
+        {"text": "Every numbered Research objective ends with a Falsification sub-bullet (W3)"},
+        {"text": "Brief body contains a Phase 0 -- Scout section with explicit time/token bound and exit conditions (W8)"},
+        {"text": "Stopping condition contains both a Must-have block and a Best-effort block, with the best-effort block including the explicit Evidence-Gap fallback (W4)"},
+        {"text": "Stopping condition contains an explicit German-language source quota of at least 30% (W6 hard gate, program: VAL)"},
+        {"text": "Every Deliverables path begins with wiki/meta/draft-R-2026-005/ (W11)"},
+        {"text": "Any deliverable under a decisions/ subpath starts with Decision-Brief- (not Decision-) and the brief instructs the loop to set decision_status: pending_human_review (W5)"},
+        {"text": "Source classes use the tier vocabulary (Primary / Expert-secondary / Practitioner) with per-tier numeric minimums (W7)"},
+        {"text": "Cost-ceiling justification names sub-topic count, citation intensity, and time-sensitivity (W9)"},
+        {"text": "Brief contains an Exemplar: line followed by either a wikilink or the explicit TBD declaration (W10)"},
+        {"text": "research-queue.md row for R-2026-005 updated: Brief cell replaced from _to brief_ with a wikilink to the new brief; Updated column = today (YYYY-MM-DD)"},
+        {"text": "research-queue.md was the only file in wiki/meta/ that the skill modified beyond the new brief file"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "audit-handwritten-brief-fails-hard-gates",
+      "prompt": "audit den Brief von R-2026-004",
+      "expected_output": "The skill reads wiki/meta/brief-R-2026-004-vertical-scoring.md and produces a section-by-section audit table covering W1-W12. Because this brief was hand-written before the skill existed and does not carry brief_version: 1, the audit must identify the hard-gate failures: no Meta-question section (W12), no Falsification sub-bullets per objective (W3), no Phase 0 -- Scout section (W8), no two-tier stopping condition with Evidence-Gap fallback (W4), deliverables not in wiki/meta/draft-R-2026-004/ paths (W11), and a Decision-* file rather than Decision-Brief-* (W5). The skill must NOT silently mark the brief as brief_version: 1. It should offer to apply the suggested edits in-place.",
+      "files": ["wiki/meta/brief-R-2026-004-vertical-scoring.md"],
+      "assertions": [
+        {"text": "No new file is created (audit mode reads only)"},
+        {"text": "Audit table produced with one row per W1-W12 convention, each row carrying Section, Status (pass/warn/**fail**), and Note columns"},
+        {"text": "W3 audit row reports fail with concrete count of objectives missing Falsification sub-bullets"},
+        {"text": "W4 audit row reports fail (no Must-have / Best-effort split with Evidence-Gap fallback)"},
+        {"text": "W5 audit row reports fail (deliverable Vertical-1-Pick-DACH-2026.md is a Decision- rather than Decision-Brief-)"},
+        {"text": "W8 audit row reports fail (no Phase-0 Scout section)"},
+        {"text": "W11 audit row reports fail (deliverables target wiki/research/, wiki/concepts/, wiki/decisions/ etc., not wiki/meta/draft-R-2026-004/)"},
+        {"text": "W12 audit row reports fail (no Meta-question section)"},
+        {"text": "Brief frontmatter is NOT mutated to brief_version: 1 by the audit step"},
+        {"text": "The skill offers to apply the suggested edits in-place (one prompt to user)"},
+        {"text": "research-queue.md is not modified during the audit-report phase"}
+      ]
+    },
+    {
+      "id": 3,
+      "name": "refuse-overwrite-already-briefed-done-task",
+      "prompt": "schreib mir den Brief für R-2026-002",
+      "expected_output": "R-2026-002 is status: done and its Brief column already points to a non-_to brief_ link ([[autoresearch-prompts-2026-05-26#Prompt 2]]). The skill must refuse to overwrite, surface the existing brief path, and offer to switch to audit mode. No file is created and no queue row is modified.",
+      "files": [],
+      "assertions": [
+        {"text": "No new brief file is created"},
+        {"text": "The existing brief path is surfaced to the user verbatim"},
+        {"text": "The skill offers to switch to audit mode rather than proceeding with construct"},
+        {"text": "research-queue.md is not modified"},
+        {"text": "The skill notes that R-2026-002 is status: done (an additional reason not to overwrite)"}
+      ]
+    },
+    {
+      "id": 4,
+      "name": "construct-free-form-topic-registers-queue-row",
+      "prompt": "/brief AI Tax Automation für deutsche Steuerberater",
+      "expected_output": "No task ID was given. The skill should propose registering a new queue row first (next free R-2026-NNN, suggest program code based on topic — VERT or VAL most plausible — and ask user to confirm program + priority). Only after user confirms, the skill appends the queue row, then runs the construct workflow. Because the topic is DACH-flavored ('deutsche Steuerberater'), W6 fires and the DE-source quota is required.",
+      "files": [],
+      "assertions": [
+        {"text": "Skill asks for program and priority before any write"},
+        {"text": "Skill proposes the next free R-2026-NNN task ID rather than guessing"},
+        {"text": "Skill only writes to research-queue.md after user confirmation of program/priority"},
+        {"text": "If confirmed, a new queued row appears in research-queue.md with the proposed task ID"},
+        {"text": "Brief file is then created at wiki/meta/brief-R-2026-NNN-<slug>.md with brief_version: 1"},
+        {"text": "Brief stopping condition contains the ≥30% German-language quota (W6, DACH topic by language signal)"},
+        {"text": "Phase-1 frame-check question is surfaced before composing the brief"}
+      ]
+    }
+  ]
+}
