@@ -1,48 +1,23 @@
-# lib/vault_root.sh — shell counterpart to lib/vault_root.py.
+#!/usr/bin/env bash
+# lib/vault_root.sh — shell wrapper around lib/vault_root.py.
 #
-# Source this from any shell script that needs to know the vault root:
+# Resolution logic lives in vault_root.py (single source of truth).
+# This wrapper preserves the original API for existing shell callers:
+#   km_resolve_vault_root [cli_arg]   # prints resolved vault root
+#   km_resolve_wiki_root  [cli_arg]   # prints <vault_root>/wiki
 #
-#     # shellcheck source=lib/vault_root.sh
-#     . "$(dirname "$0")/../lib/vault_root.sh"
-#     KM_VAULT_ROOT="$(km_resolve_vault_root "$1")"
-#
-# Resolution order matches the Python helper:
-#
-#     KM_VAULT_PATH (env)  ->  positional arg ($1)  ->  current working directory
-#
-# Functions:
-#   km_resolve_vault_root [cli_arg]   prints the resolved vault root
-#   km_resolve_wiki_root  [cli_arg]   prints <vault_root>/wiki
+# Resolution order (matches the Python helper):
+#   KM_VAULT_PATH (env)  ->  positional arg  ->  current working directory
 
-# Print the resolved vault root. Does not verify existence.
+_VAULT_ROOT_PY="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/vault_root.py"
+
+# Re-export KM_VAULT_PATH so the python subprocess sees it even when callers
+# set it via the `VAR=value func` prefix form (which produces a non-exported
+# shell variable, invisible to child processes).
 km_resolve_vault_root() {
-  local arg="${1:-}"
-  if [ -n "${KM_VAULT_PATH:-}" ]; then
-    # Resolve to absolute path, expand ~. Use cd to normalize.
-    (cd "${KM_VAULT_PATH/#\~/$HOME}" 2>/dev/null && pwd) || printf '%s\n' "${KM_VAULT_PATH/#\~/$HOME}"
-    return 0
-  fi
-  if [ -n "$arg" ]; then
-    (cd "${arg/#\~/$HOME}" 2>/dev/null && pwd) || printf '%s\n' "${arg/#\~/$HOME}"
-    return 0
-  fi
-  pwd
+  KM_VAULT_PATH="${KM_VAULT_PATH:-}" python3 "$_VAULT_ROOT_PY" --vault "${1:-}"
 }
 
-# Print the resolved wiki root (<vault_root>/wiki). With KM_VAULT_PATH set,
-# argv is ignored. Without env, argv is treated as a wiki root directly to stay
-# backward-compatible with existing callers.
 km_resolve_wiki_root() {
-  local arg="${1:-}"
-  if [ -n "${KM_VAULT_PATH:-}" ]; then
-    local root
-    root="$(km_resolve_vault_root)"
-    printf '%s\n' "$root/wiki"
-    return 0
-  fi
-  if [ -n "$arg" ]; then
-    (cd "${arg/#\~/$HOME}" 2>/dev/null && pwd) || printf '%s\n' "${arg/#\~/$HOME}"
-    return 0
-  fi
-  printf '%s\n' "$(pwd)/wiki"
+  KM_VAULT_PATH="${KM_VAULT_PATH:-}" python3 "$_VAULT_ROOT_PY" --wiki "${1:-}"
 }
