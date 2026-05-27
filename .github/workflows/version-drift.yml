@@ -1,0 +1,32 @@
+name: Version Drift Check
+
+on:
+  pull_request:
+    paths:
+      - '.claude-plugin/**'
+      - 'bin/sync-versions.sh'
+
+jobs:
+  drift:
+    name: plugin.json -> marketplace.json
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Re-run sync-versions and check for drift
+        run: |
+          if [ ! -x bin/sync-versions.sh ]; then
+            echo "bin/sync-versions.sh not found or not executable — Track D not merged yet?"
+            exit 0
+          fi
+          cp .claude-plugin/marketplace.json /tmp/marketplace.before.json
+          bash bin/sync-versions.sh
+          if ! diff -q /tmp/marketplace.before.json .claude-plugin/marketplace.json >/dev/null 2>&1; then
+            echo "Version drift detected!"
+            echo "Run 'bash bin/sync-versions.sh' locally and commit the result."
+            diff /tmp/marketplace.before.json .claude-plugin/marketplace.json || true
+            exit 1
+          fi
+          echo "marketplace.json in sync with plugin.json"
