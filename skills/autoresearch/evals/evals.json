@@ -1,0 +1,79 @@
+{
+  "skill_name": "autoresearch",
+  "description": "Decision-logic evaluation of the autoresearch skill: queue reading, brief_version gating, dependency enforcement, ad-hoc bypass, and draft-path output. These evals deliberately stop the skill BEFORE the web-research loop runs in most cases — the focus is on whether the skill correctly accepts, refuses, or routes a request based on queue state. Only eval #4 lets the loop proceed end-to-end to verify the happy path. Test cases assume the vault at ~/ai-secondbrain is in the state captured on 2026-05-27 (R-2026-001/002/003 done; R-2026-004/005/006/007/008/009 queued; R-2026-005 deps on R-2026-004; R-2026-009 deps on R-2026-002 done + R-2026-003 done; briefs for R-2026-004/006/007/008 exist but lack brief_version: 1; R-2026-005 still _to brief_).",
+  "evals": [
+    {
+      "id": 1,
+      "name": "no-args-refuses-on-missing-brief-version",
+      "prompt": "/autoresearch",
+      "expected_output": "Skill reads wiki/meta/research-queue.md, filters to status: queued, skips rows whose brief is _to brief_, applies the dependency-readiness filter, then sorts by priority + created. The top candidate is R-2026-004 (P1, VERT, brief exists but no brief_version: 1). Before any status flip and before any web search, the skill must check the brief's brief_version frontmatter. Because R-2026-004's brief lacks brief_version: 1, the skill must refuse with the canonical message pointing to the research-brief skill in audit mode. No status flip happens, no log entry is written, no draft directory is created.",
+      "files": [],
+      "assertions": [
+        {"text": "Skill reads research-queue.md and identifies R-2026-004 as top candidate by priority + created + deps-ready"},
+        {"text": "Skill reads the brief file at wiki/meta/brief-R-2026-004-vertical-scoring.md and inspects frontmatter"},
+        {"text": "Skill detects that brief_version is absent (or < 1) in R-2026-004's brief"},
+        {"text": "Skill prints the canonical refuse message naming the research-brief skill in audit mode"},
+        {"text": "research-queue.md row for R-2026-004 is NOT mutated to status: in-progress"},
+        {"text": "wiki/log.md receives no append for this invocation (the loop never started)"},
+        {"text": "No wiki/meta/draft-R-2026-004/ directory is created"},
+        {"text": "No web search or fetch tool calls are issued"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "explicit-task-deps-blocked-refuses",
+      "prompt": "/autoresearch R-2026-005",
+      "expected_output": "R-2026-005 has depends_on: R-2026-004 and R-2026-004 is still status: queued. The skill must refuse with the dependency-enforcement message and name the blocking task. This refusal must happen even though R-2026-005's brief is _to brief_ (the deps check is allowed to short-circuit before the brief check, or after — either ordering is acceptable as long as both fire). No status flip, no work.",
+      "files": [],
+      "assertions": [
+        {"text": "Skill refuses to start R-2026-005"},
+        {"text": "Refusal message names R-2026-004 as the blocking dependency and its current status"},
+        {"text": "research-queue.md is not modified"},
+        {"text": "No web research is performed"}
+      ]
+    },
+    {
+      "id": 3,
+      "name": "explicit-task-missing-brief-refuses",
+      "prompt": "/autoresearch R-2026-009",
+      "expected_output": "R-2026-009 has all deps done (R-2026-002 done, R-2026-003 done) but its brief is _to brief_. The skill must refuse with the missing-brief message, naming research-brief skill construct mode as the next step. No status flip, no work.",
+      "files": [],
+      "assertions": [
+        {"text": "Skill refuses to start R-2026-009"},
+        {"text": "Refusal message identifies the brief as _to brief_ (or absent) and points to the research-brief skill in construct mode"},
+        {"text": "research-queue.md is not modified"},
+        {"text": "No web research is performed"}
+      ]
+    },
+    {
+      "id": 4,
+      "name": "ad-hoc-topic-bypasses-queue-writes-to-draft",
+      "prompt": "/autoresearch open-source DACH RAG benchmarks 2026",
+      "expected_output": "An ad-hoc topic is given. The skill bypasses the queue entirely and runs the loop on the topic. To respect W11 (no direct wiki write), the ad-hoc mode also writes outputs first to wiki/meta/draft-adhoc-<slug>-<timestamp>/ rather than to wiki/research/. The queue is not touched. wiki/log.md receives an entry noting the ad-hoc run. The actual research depth is constrained by a short default cap (MAX_DEPTH: 1, MAX_SOURCES: 5) since no brief was provided — this is a known limitation of ad-hoc mode and the skill should surface it.",
+      "files": [],
+      "assertions": [
+        {"text": "Skill recognizes the input as ad-hoc topic, not a task ID"},
+        {"text": "research-queue.md is not modified"},
+        {"text": "Output files land under wiki/meta/draft-adhoc-*/, not directly in wiki/research/"},
+        {"text": "wiki/log.md gains a new entry at the top noting the ad-hoc autoresearch run"},
+        {"text": "Skill prints a one-line note that ad-hoc mode uses a short default cap and recommends drafting a brief via research-brief skill for deeper runs"}
+      ]
+    },
+    {
+      "id": 5,
+      "name": "concurrency-refuses-second-in-progress",
+      "prompt": "/autoresearch R-2026-007",
+      "expected_output": "Test case is run with R-2026-006 already at status: in-progress in research-queue.md (synthetic state for this test). The skill must refuse with the concurrency message, naming R-2026-006 as the blocking in-progress task and its started date. No status flip on R-2026-007.",
+      "files": [],
+      "assertions": [
+        {"text": "Skill refuses to start R-2026-007"},
+        {"text": "Refusal message names R-2026-006 as the currently in-progress task and quotes its started date"},
+        {"text": "research-queue.md is not modified"},
+        {"text": "No web research is performed"}
+      ],
+      "preconditions": [
+        "Before running, set R-2026-006 status to in-progress in research-queue.md (test fixture). After the test, revert."
+      ]
+    }
+  ]
+}

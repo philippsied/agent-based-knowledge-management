@@ -29,8 +29,12 @@ Read `references/program.md` to load the research objectives and constraints. Th
 
 Four paths to a topic, evaluated in order:
 
-### A. Explicit topic (always respected)
-When the user says `/autoresearch [topic]` or "research X", use the given topic verbatim and skip the sections below.
+### A. Explicit topic or task ID (always respected)
+
+When the user passes an argument to the skill (`/autoresearch <argument>`, `autoresearch <argument>`, or `research <argument>`):
+
+- **Argument matches `R-YYYY-NNN`** (a research-queue task ID): route through section B's task handling for that specific task. Skip the no-args concurrency / ready-set / boundary computation, but apply the **brief-presence**, **brief-version**, and **dependency** gates from section B before starting the loop. On gate failure, refuse with the canonical message — do not fall through to free-text mode.
+- **Otherwise** (free-text topic): treat the argument as an ad-hoc topic. Set `QUEUE_MODE=0`, skip sections B-D, use the text verbatim as the loop input. Output goes to the ad-hoc draft path (see *Filing Results — Output path by mode*).
 
 ### B. Research-queue driven (default when no topic given, opt-in via queue file)
 
@@ -56,8 +60,21 @@ When `QUEUE_MODE=1`:
 2. **Validate the DAG**: run `python3 scripts/lint/lint-deps.py`. If exit code != 0 (cycles, missing deps, or duplicate IDs), refuse to start and surface the lint output. The queue must be clean.
 3. **Compute ready set**: run `python3 scripts/lint/lint-deps.py --ready`. This returns IDs of tasks where `status: queued` AND all `depends_on:` are `done`, in priority order (P0 first, then FIFO by `created`).
 4. **Helper failure handling**: if the helper exits non-zero, emits no output, or returns an empty list, set `QUEUE_MODE=0` and fall through to section C below. Do NOT improvise a topic.
-5. **Brief enforcement**: read the queue table to resolve the top ID. If its `Brief` cell is `_to brief_` or empty, skip to the next ready ID. If no ready task has a brief, fall through to C.
-6. **Present to user**:
+5. **Brief presence enforcement**: read the queue table to resolve the top ID. If its `Brief` cell is `_to brief_` or empty:
+   - **No-args invocation** (queue-driven selection): skip to the next ready ID. If no ready task has a brief, fall through to C.
+   - **Explicit task-ID invocation** (section A routing here): refuse and surface:
+     ```
+     Refusing to start R-YYYY-NNN: brief is missing or _to brief_.
+     Run the agentic-knowledge-management:research-brief skill in construct mode to produce a brief first.
+     ```
+6. **Brief-version enforcement** (W11 gate, see `references/program.md` and the research-brief skill): read the brief file referenced by the queue row. Parse its frontmatter. If `brief_version` is absent or `!= 1`, surface:
+   ```
+   Refusing to start R-YYYY-NNN: brief does not carry brief_version: 1.
+   Run the agentic-knowledge-management:research-brief skill in audit mode to validate and bring it to current schema.
+   ```
+   - **No-args invocation**: skip to the next ready ID after surfacing the message (do not silently skip — the user must see which task was unrunnable).
+   - **Explicit task-ID invocation**: refuse and stop. Do not fall through to free-text mode.
+7. **Present to user**:
    ```
    Selected R-YYYY-NNN [P0/EVAL]: <title>
    Brief: <brief link>
@@ -65,12 +82,12 @@ When `QUEUE_MODE=1`:
    Depends on: <list or —>
    Proceed? (y / type a topic to override / 'next' for the next ready task / 'cancel')
    ```
-7. **On confirm**:
+8. **On confirm**:
    - Edit the queue row: flip `status: queued` → `status: in-progress`, set `started: <today>`, bump `updated:`.
    - Use the brief content as the topic input for the research loop. The brief already encodes objectives, sources, stopping condition, and deliverables — respect them verbatim.
-8. **On 'next'**: move to the next ready ID, repeat from step 5.
-9. **On topic override**: set `QUEUE_MODE=0` for this run, do not touch the queue, use the typed text as topic.
-10. **On 'cancel'**: ask via section D (user-chosen).
+9. **On 'next'**: move to the next ready ID, repeat from step 5.
+10. **On topic override**: set `QUEUE_MODE=0` for this run, do not touch the queue, use the typed text as topic.
+11. **On 'cancel'**: ask via section D (user-chosen).
 
 **During the loop**: never edit `wiki/meta/research-queue.md`'s row schema or other rows. Only the active row's `status`, `started`, `finished`, `updated`, and `deliverables` may be touched. **Never edit eval files** (mirrors the [[Self-Improvement-Loop]] principle: the agenda is the review loop).
 
@@ -144,7 +161,18 @@ Max rounds: 3 (as set in program.md). Stop when depth is reached or max rounds h
 
 ## Filing Results
 
-After research is complete, create these pages:
+### Output path by mode
+
+The base output path differs by invocation mode:
+
+- **`QUEUE_MODE=1`** (task picked from research-queue via no-args or explicit task ID): outputs first land under `wiki/meta/draft-<task-id>/` per the brief's W11 instruction. Sub-paths mirror the final structure: `wiki/meta/draft-<task-id>/sources/`, `wiki/meta/draft-<task-id>/concepts/`, `wiki/meta/draft-<task-id>/entities/`, `wiki/meta/draft-<task-id>/questions/`. A separate skill (`agentic-knowledge-management:promote-draft`, planned) or manual review promotes drafts to final paths after a human pass.
+- **`QUEUE_MODE=0` ad-hoc topic** (free-text argument, boundary-mode pick, or user-chosen): outputs first land under `wiki/meta/draft-adhoc-<slug>-<YYYY-MM-DD-HHMM>/`. No brief = short default cap: `MAX_DEPTH: 1`, `MAX_SOURCES: 5`, overriding `references/program.md` defaults. Before starting the loop, surface one line: *"Ad-hoc mode uses a short default cap. For deeper runs, draft a brief via the research-brief skill and add it to wiki/meta/research-queue.md."*
+
+**Path substitution rule**: wherever the section below says "create `wiki/sources/Foo.md`", "create `wiki/concepts/Bar.md`", etc., prepend the active mode's base prefix to the path. The page templates (frontmatter, body structure) are identical across modes — only the path differs.
+
+### Pages to create
+
+After research is complete, create these pages (under the active base prefix):
 
 **wiki/sources/**. One page per major reference found
 - Use source frontmatter (type, source_type, author, date_published, url, confidence, key_claims)
@@ -215,7 +243,7 @@ sources:
 
 ## After Filing
 
-1. Update `wiki/index.md`. Add all new pages to the right sections
+1. Update `wiki/index.md` **only when outputs landed in their final paths** (not under any `wiki/meta/draft-*/` prefix). Draft outputs are indexed at promotion time, not before — keeping the master catalog free of unreviewed pages
 2. Append to `wiki/log.md` (at the TOP):
    ```
    ## [YYYY-MM-DD] autoresearch | [Topic]
