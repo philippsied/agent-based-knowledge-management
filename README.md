@@ -12,7 +12,7 @@
 
 Claude + Obsidian knowledge companion. A running notetaker that builds and maintains a persistent, compounding wiki vault. Every source you add gets integrated. Every question you ask pulls from everything that has been read. Knowledge compounds like interest.
 
-Based on [Andrej Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). **11 skills. Zero manual filing. Multi-agent support. Optional [DragonScale Memory](docs/dragonscale-guide.md) extension** (log folds, deterministic page addresses, semantic tiling lint, boundary-first autoresearch).
+Based on [Andrej Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). **13 skills. Zero manual filing. Multi-agent support. Optional [DragonScale Memory](docs/dragonscale-guide.md) extension** (log folds, deterministic page addresses, semantic tiling lint, boundary-first autoresearch).
 
 ---
 
@@ -289,18 +289,24 @@ agent-based-knowledge-management/
 ├── .claude-plugin/
 │   ├── plugin.json              # manifest
 │   └── marketplace.json         # distribution
-├── skills/
+├── skills/                      # 13 skills (Agent Skills format)
 │   ├── wiki/                    # orchestrator + references (7 ref files)
-│   ├── wiki-ingest/             # INGEST operation
-│   ├── wiki-query/              # QUERY operation
-│   ├── wiki-lint/               # LINT operation
+│   ├── wiki-ingest/             # INGEST operation (files, URLs, images)
+│   ├── wiki-query/              # QUERY operation (Quick / Standard / Deep)
+│   ├── wiki-lint/               # LINT operation (orphans, dead links, gaps)
+│   ├── wiki-fold/               # DragonScale Mechanism 1 — log rollup folds
 │   ├── save/                    # /save: file conversations to wiki
 │   ├── autoresearch/            # /autoresearch: autonomous research loop
 │   │   └── references/
 │   │       └── program.md       # configurable research objectives
-│   └── canvas/                  # /canvas: visual layer (images, PDFs, notes)
-│       └── references/
-│           └── canvas-spec.md   # Obsidian canvas JSON format reference
+│   ├── canvas/                  # /canvas: visual layer (images, PDFs, notes)
+│   │   └── references/
+│   │       └── canvas-spec.md   # Obsidian canvas JSON format reference
+│   ├── defuddle/                # /defuddle: strip clutter from URLs before ingest
+│   ├── doc-pipeline/            # /doc-pipeline: .doc/.docx/.pdf/.pptx/... → ingest-ready Markdown
+│   ├── obsidian-bases/          # /obsidian-bases: native database-style views (.base files)
+│   ├── obsidian-markdown/       # /obsidian-markdown: wikilinks, callouts, embeds, properties
+│   └── research-brief/          # /research-brief: construct or audit autoresearch briefs (W1-W12)
 ├── agents/
 │   ├── wiki-ingest.md           # parallel ingestion agent
 │   └── wiki-lint.md             # health check agent
