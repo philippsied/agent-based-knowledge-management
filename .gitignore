@@ -20,6 +20,9 @@
 .obsidian-git-data
 .trash/
 
+# Claude Code local state (settings, worktrees, agent scratch)
+.claude/
+
 # System
 .DS_Store
 Thumbs.db
