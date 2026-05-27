@@ -15,7 +15,10 @@
 # Default out-dir = <vault>/.raw  (ingest-ready; picked up by the wiki-ingest skill)
 set -euo pipefail
 
-ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+# vault root via plugin-wide resolver (PR0): KM_VAULT_PATH env → cwd
+# shellcheck source=../../../lib/vault_root.sh
+. "$(dirname "$0")/../../../lib/vault_root.sh"
+ROOT="$(km_resolve_vault_root)"
 
 SRC="${1:?usage: finalize-md.sh <staging-file.md> [--out-dir DIR] [--force]}"
 shift || true

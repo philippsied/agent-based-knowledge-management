@@ -38,7 +38,9 @@ via the `/doc-pipeline` command, which guarantees `$CLAUDE_PLUGIN_ROOT` is set:
 If the skill is triggered without `$CLAUDE_PLUGIN_ROOT` set (e.g. autonomously,
 not through the command), locate this skill's own directory and call the scripts
 from its `scripts/` subfolder. The scripts operate on the **current vault**
-(resolved via `git rev-parse`), regardless of where the plugin is installed.
+(resolved via the plugin-wide `lib/vault_root.sh` — order: `KM_VAULT_PATH` env
+→ cwd; override with `KM_VAULT_PATH` for hooks/CI where cwd is not the vault),
+regardless of where the plugin is installed.
 Requires `markit` (`npm i -g markit-ai`); a `pandoc` reference and macOS
 `textutil`/`libreoffice` pre-handling are used when available.
 

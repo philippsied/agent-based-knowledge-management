@@ -25,8 +25,10 @@
 #   .xls   (legacy)       → attempted directly, warns if unsupported
 set -euo pipefail
 
-# ---- vault root = current working tree (NOT the plugin dir) ----
-ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+# ---- vault root via plugin-wide resolver (PR0): KM_VAULT_PATH env → cwd ----
+# shellcheck source=../../../lib/vault_root.sh
+. "$(dirname "$0")/../../../lib/vault_root.sh"
+ROOT="$(km_resolve_vault_root)"
 
 # ---- args ----
 SRC="${1:?usage: convert-doc.sh <source-file> [--out-dir DIR] [--no-ref] [--keep-images]}"
