@@ -12,7 +12,7 @@ This repo is a knowledge companion that builds persistent, compounding Obsidian 
 
 ```
 claude-obsidian/
-├── skills/              ← 10 SKILL.md files (Agent Skills format)
+├── skills/              ← 13 SKILL.md files (Agent Skills format)
 ├── hooks/               ← SessionStart, PostCompact, PostToolUse, Stop
 ├── .claude-plugin/      ← Claude Code plugin manifest
 ├── _templates/          ← Obsidian Templater templates
@@ -27,18 +27,21 @@ claude-obsidian/
 
 ## Skills Available to Cascade
 
-Run `bash bin/setup-multi-agent.sh` once to symlink `skills/` into `.windsurf/skills/`. Then Cascade auto-discovers all 10 skills:
+Run `bash bin/setup-multi-agent.sh` once to symlink `skills/` into `.windsurf/skills/`. Then Cascade auto-discovers all 13 skills:
 
 - `wiki`: orchestration, vault scaffolding, hot cache
 - `wiki-ingest`: files, URLs, images → 8-15 wiki pages
 - `wiki-query`: Quick / Standard / Deep query modes
 - `wiki-lint`: health check (orphans, dead links, gaps)
+- `wiki-fold`: DragonScale Mechanism 1 — log rollup folds
 - `save`: file conversation as wiki note
-- `autoresearch`: autonomous research loop
+- `autoresearch`: autonomous research loop (with optional topic selection)
 - `canvas`: Obsidian canvas (.canvas) files
 - `defuddle`: clean web pages before ingest
+- `doc-pipeline`: convert `.doc/.docx/.pdf/.pptx/.xlsx/...` into ingest-ready Markdown
 - `obsidian-markdown`: full Obsidian syntax reference
 - `obsidian-bases`: Obsidian Bases (.base) database views
+- `research-brief`: construct or audit autoresearch briefs (W1-W12 conventions)
 
 ## Critical Rules
 

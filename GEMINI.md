@@ -24,12 +24,15 @@ bash bin/setup-multi-agent.sh
 | `wiki-ingest` | Reads sources (files, URLs, images) and creates 8-15 wiki pages each |
 | `wiki-query` | Answers questions from the wiki with three depth modes |
 | `wiki-lint` | Health checks: orphans, dead links, stale claims, gaps |
+| `wiki-fold` | DragonScale Mechanism 1 — rollup of log entries into meta-pages |
 | `save` | Files the current conversation as a wiki note |
-| `autoresearch` | Autonomous research loop: search → fetch → synthesize → file |
+| `autoresearch` | Autonomous research loop: search → fetch → synthesize → file (optional topic selection) |
 | `canvas` | Creates and edits Obsidian canvas (.canvas) files |
 | `defuddle` | Cleans web pages before ingest (saves 40-60% tokens) |
+| `doc-pipeline` | Converts `.doc/.docx/.pdf/.pptx/.xlsx/...` into ingest-ready Markdown |
 | `obsidian-markdown` | Obsidian Flavored Markdown syntax reference |
 | `obsidian-bases` | Obsidian Bases (.base files): native database views |
+| `research-brief` | Construct or audit autoresearch briefs (W1-W12 conventions) |
 
 ## Trigger Phrases (Examples)
 

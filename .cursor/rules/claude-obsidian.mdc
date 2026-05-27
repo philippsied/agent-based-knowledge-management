@@ -16,7 +16,7 @@ A Claude Code plugin and Obsidian vault that builds persistent, compounding know
 - **Vault root**: contains `wiki/` (agent-generated knowledge) and `.raw/` (source documents: immutable)
 - **Hot cache**: `wiki/hot.md` (~500 tokens) holds recent session context
 - **Index**: `wiki/index.md` is the master catalog Claude reads first
-- **Skills**: 10 skills under `skills/<name>/SKILL.md` define ingest/query/lint/save/canvas/etc
+- **Skills**: 13 skills under `skills/<name>/SKILL.md` define ingest/query/lint/save/canvas/etc
 
 ## Skills Available
 
@@ -26,12 +26,15 @@ A Claude Code plugin and Obsidian vault that builds persistent, compounding know
 | `wiki-ingest` | Ingest a file, URL, or image: creates 8-15 wiki pages |
 | `wiki-query` | Answer questions from the wiki (Quick / Standard / Deep modes) |
 | `wiki-lint` | Health check: orphans, dead links, gaps |
+| `wiki-fold` | DragonScale Mechanism 1 — log rollup folds |
 | `save` | File current conversation as a wiki note |
-| `autoresearch` | Autonomous research loop |
+| `autoresearch` | Autonomous research loop (with optional topic selection) |
 | `canvas` | Create/edit Obsidian canvas files |
 | `defuddle` | Clean web pages before ingest |
+| `doc-pipeline` | Convert `.doc/.docx/.pdf/.pptx/.xlsx/...` into ingest-ready Markdown |
 | `obsidian-markdown` | Obsidian syntax reference |
 | `obsidian-bases` | Obsidian Bases (.base files) |
+| `research-brief` | Construct or audit autoresearch briefs (W1-W12 conventions) |
 
 Read the relevant `skills/<name>/SKILL.md` file when the user's request matches a skill's trigger phrases.
 

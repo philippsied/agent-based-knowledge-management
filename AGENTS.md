@@ -32,11 +32,13 @@ bash bin/setup-multi-agent.sh
 | `wiki-lint` | lint the wiki, health check, find orphans |
 | `wiki-fold` | fold the log, run a fold, log rollup (DragonScale Mechanism 1, opt-in) |
 | `save` | /save, file this conversation |
-| `autoresearch` | autoresearch, autonomous research loop |
+| `autoresearch` | autoresearch, autonomous research loop (optional topic selection) |
 | `canvas` | /canvas, add to canvas, create canvas |
 | `defuddle` | clean this url, defuddle |
+| `doc-pipeline` | convert to markdown, doc pipeline, prepare documents for ingest |
 | `obsidian-markdown` | obsidian syntax, wikilink, callout |
 | `obsidian-bases` | obsidian bases, .base file, dynamic table |
+| `research-brief` | write a research brief, audit this brief, /brief <task-id> |
 
 ## Key Conventions
 
