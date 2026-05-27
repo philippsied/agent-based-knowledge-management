@@ -1,7 +1,7 @@
 ---
 type: meta
 title: "Hot Cache"
-updated: 2026-04-24T13:10:00
+updated: 2026-05-28T00:00:00
 tags:
   - meta
   - hot-cache
@@ -20,48 +20,42 @@ Navigation: [[index]] | [[log]] | [[overview]]
 
 ## Last Updated
 
-2026-04-24 (late night): v1.6.0 public release notes shipped. `docs/releases/v1.6.0.md` (Karpathy-style, 346 lines) establishes the release-notes convention. Three original SVGs at `wiki/meta/dragonscale-{mechanism-overview,6-test-flow,frontier-graph}.svg` carry the visual load; Wikipedia dragon curve referenced by text link only (no binary vendoring). R4 codex verifier ACCEPT WITH FIXES, 3 wording fixes applied. User runs `gh release create v1.6.0 --notes-file docs/releases/v1.6.0.md` when ready. Commits `85515bb` (docs), plus wiki/meta/ auto-commits for SVGs.
+2026-05-28: Plugin-Quality-Sweep landed across 5 parallel tracks + 1 sequential doc-fix track. Brand-rename Phase 1 (9 replacements on plugin surface; vault content untouched per decision). `lib/vault_root.sh` consolidated to a Python subprocess wrapper (23 lines; Python is single source of truth, ~90ms overhead within tolerance). Release tooling shipped: `bin/sync-versions.sh`, `bin/release.sh`, `tests/test_sync_versions.sh`. Tags v1.5.0 / v1.5.1 / v1.7.0 / v1.8.0 backfilled annotated (v1.6.0 already existed). `marketplace.json.plugins[0].source.ref` pinned to `v1.8.0`. GitHub Actions added: `test.yml`, `version-drift.yml`, `release.yml`. Repo-cleanup: `docs/install-guide.pdf` removed (162 KB binary; md source remains), `make clean` target added. Thino plugin removal blocked — license unverifiable in sandbox; manifest declares "Closed source"; documented in `docs/influence-log.md` for follow-up. Doc-drift fixed: all skill counts updated to 13 across CLAUDE.md, README.md, AGENTS.md, GEMINI.md, .github/copilot-instructions.md, .windsurf/, .cursor/.
 
-2026-04-24 (night): DragonScale end-to-end validation pass. Six-test menu run via Teams orchestration (codex gpt-5.4 for M1 dry-run, M1 commit, M4 autoresearch; chair for ollama pull, M2 allocate, M3 full tiling). All six green. First real fold committed (`wiki/folds/fold-k3-from-2026-04-23-to-2026-04-24-n8.md`, 115 lines, 8 children). First real tiling report at `wiki/meta/tiling-report-2026-04-24.md` (0 errors, 15 review pairs). M2 counter advanced 2 to 3, `c-000002` reserved-unassigned. M4 autoresearch filed 3 new concept pages (`Persistent Wiki Artifact`, `Source-First Synthesis`, `Query-Time Retrieval`) extending `[[How does the LLM Wiki pattern work?]]` with Karpathy gist + RAG + MemGPT + Obsidian docs as sources. v1.6.0 validated.
+2026-05-26: v1.8.0 cut (PR0 + PR1 — vault-root resolver + canonical lint aggregator). Severity defaults hardcoded for PR1.
 
-2026-04-24 (evening): v1.6.0 closeout via Teams approach (chair-led, codex gpt-5.4 for sub-agents). 2 explorers (closeout gaps + doc surface). 6 bounded writes (non-overlapping scope): `docs/dragonscale-guide.md` (new, 563 lines), `wiki/meta/2026-04-24-v1.6.0-release-session.md` (new, 346 lines), `wiki/meta/boundary-frontier-2026-04-24.md` (first real M4 run artifact, new), `docs/install-guide.md` (1.5.0 to 1.6.0 + M4 callout + flat-extractive correction), `README.md` (parenthetical + guide link), `wiki/hot.md` (drift fixes). 1 adversarial verifier returned ACCEPT WITH FIXES; all 11 fixes applied in place. Docs commit `eb1562f`. `make test` green (74+ assertions). Still no git tags for v1.5.0 / v1.5.1 / v1.6.0. User requested gpt-5.5; API rejects it on this codex CLI; gpt-5.4 used throughout.
+2026-05-21: v1.7.0 — doc-pipeline skill changelog entry.
 
-2026-04-24 (late): Phase 4 shipped. Mechanism 4 (boundary-first autoresearch) implemented as `scripts/boundary-score.py` with expanded test coverage. `/autoresearch` without a topic now offers frontier candidates (opt-in, agenda-control labeled). Cross-file status updated. Version bumped to 1.6.0 in `plugin.json` + `marketplace.json`; no git tag created locally (only pre-DragonScale tags `v1.1` - `v1.4.3` exist).
+2026-04-24 (multi-phase): v1.5.0 (Phase 3.5 hardening), v1.5.1 (Phase 3.6 hardening), v1.6.0 (DragonScale Mechanism 4 — boundary-first autoresearch). All four DragonScale mechanisms shipped and feature-gated this day. See CHANGELOG.md for granular detail.
 
-2026-04-24 (afternoon): Phase 3.6 hardening, five surgical fixes (tiling --report path confinement, rollout baseline, AGENTS.md consistency, wiki-ingest .raw contradiction, install-guide version). v1.5.1.
-
-2026-04-24 (morning): Phase 3.5 hardening pass. Cross-phase audit resolved 10 hold-ship items. At that point Mechanism 4 was marked NOT IMPLEMENTED (later reversed in Phase 4 the same day). `bin/setup-dragonscale.sh` + tests + Makefile added, CHANGELOG created, versions synced to 1.5.0.
-
-2026-04-23 (3): Phase 3 complete. Semantic tiling lint shipped as opt-in. `scripts/tiling-check.py` with flock-guarded atomic cache, localhost-locked OLLAMA_URL default, symlink rejection, model-drift invalidation, and banded thresholds (error>=0.90, review>=0.80, conservative seeds). 4 codex review rounds, 10/10 accept.
-
-2026-04-23 (2): Phase 2 complete. Deterministic page addresses MVP via `scripts/allocate-address.sh` (flock-guarded, recovers counter from max observed). New frontmatter `address: c-NNNNNN`. `wiki-ingest` and `wiki-lint` updated with opt-in Address Assignment and Validation sections. 3 codex rounds, 8/8 accept.
-
-2026-04-23 (1): Phase 0-1 complete. DragonScale Memory spec (`wiki/concepts/DragonScale Memory.md` v0.3) plus `skills/wiki-fold/` for Mechanism 1 (log rollups, dry-run verified). Survived multi-round codex review.
+2026-04-23: Phases 0–3 of DragonScale shipped — fold operator, deterministic addresses, semantic tiling lint.
 
 ## Plugin State
 
-- **Version**: 1.6.0 (Phase 4 shipped; plugin.json + marketplace.json synced; 1.5.1 was the Phase 3.6 hardening point release)
+- **Version**: 1.8.0
 - **Install ID**: `agentic-knowledge-management@akm-marketplace`
-- **Skills**: 11 (wiki, wiki-ingest, wiki-query, wiki-lint, wiki-fold, save, autoresearch, canvas, defuddle, obsidian-bases, obsidian-markdown)
-- **Scripts**: `scripts/allocate-address.sh`, `scripts/tiling-check.py`, `scripts/boundary-score.py` (all opt-in; feature-detected by skills)
-- **Setup**: `bin/setup-vault.sh` (base vault), `bin/setup-dragonscale.sh` (opt-in DragonScale), `bin/setup-multi-agent.sh` (multi-agent bootstrap)
-- **Tests**: `make test` runs `tests/test_allocate_address.sh`, `tests/test_tiling_check.py`, `tests/test_boundary_score.py`. Zero ollama dependency for core tests.
-- **Hooks**: 4 (SessionStart, PostCompact, PostToolUse [stages wiki/, .raw/, .vault-meta/], Stop)
+- **Skills**: 13 (autoresearch, canvas, defuddle, doc-pipeline, obsidian-bases, obsidian-markdown, research-brief, save, wiki, wiki-fold, wiki-ingest, wiki-lint, wiki-query)
+- **Scripts** (`scripts/`): `allocate-address.sh`, `boundary-score.py`, `lint-orphans.py`, `lint-terminology.py`, `lint-title-overlap.py`, `run-lint.sh`, `tiling-check.py`
+- **Lib** (`lib/`): `vault_root.py` (single source of truth for vault-root resolution), `vault_root.sh` (subprocess wrapper)
+- **Setup + Release** (`bin/`): `setup-vault.sh`, `setup-dragonscale.sh`, `setup-multi-agent.sh`, `sync-versions.sh`, `release.sh`
+- **Tests** (`tests/`): test_allocate_address.sh, test_boundary_score.py, test_lint_orphans.py, test_lint_terminology.py, test_lint_title_overlap.py, test_run_lint.sh, test_sync_versions.sh, test_tiling_check.py, test_vault_root.py, test_vault_root.sh. Zero ollama dependency for core tests.
+- **CI** (`.github/workflows/`): `test.yml` (push + PR: make test + run-lint), `version-drift.yml` (PR drift gate on plugin.json/marketplace.json sync), `release.yml` (on release published: attach PDF via pandoc).
+- **Hooks** (`hooks/hooks.json`): 4 hooks — SessionStart, PostCompact, PostToolUse [stages `wiki/`, `.raw/`, `.vault-meta/`], Stop.
 
 ## DragonScale Mechanisms
 
 1. **Fold operator** (Mechanism 1): `skills/wiki-fold/`, dry-run verified AND first real fold committed at `wiki/folds/fold-k3-from-2026-04-23-to-2026-04-24-n8.md`.
-2. **Deterministic addresses** (Mechanism 2): shipped and exercised; vault counter at 3. `c-000001` on DragonScale Memory.md. `c-000002` reserved-unassigned from validation pass (gap acceptable per spec).
+2. **Deterministic addresses** (Mechanism 2): shipped and exercised; vault counter at 3. `c-000001` on `DragonScale Memory.md`. `c-000002` reserved-unassigned from validation pass (gap acceptable per spec).
 3. **Semantic tiling lint** (Mechanism 3): shipped and activated. `nomic-embed-text` pulled; first tiling report at `wiki/meta/tiling-report-2026-04-24.md` (0 errors, 15 review-band pairs).
 4. **Boundary-first autoresearch** (Mechanism 4): shipped (Phase 4, opt-in). `scripts/boundary-score.py` + `tests/test_boundary_score.py`. `/autoresearch` without a topic surfaces top-5 frontier pages as candidates; user picks, overrides, or declines. Explicitly labeled "agenda control" in both spec and skill.
 
 ## Key Lessons from This Release Cycle
 
-1. Cross-phase audits are essential. Individual phase reviews miss drift between phases.
-2. Opt-in feature detection (`[ -x script ] && [ -f state ]`) preserves default plugin behavior for adopters and non-adopters alike.
-3. PostToolUse hook matcher is `Write|Edit`, so Bash writes don't fire it. Scripts that mutate tracked state must be Bash-only to avoid side-effect commits.
-4. Seed-vault self-consistency matters: if the spec says post-rollout pages need addresses, the concept page itself has to have one.
-5. Codex adversarial review rounds stop when the punch list is empty, not when the author feels done.
+1. Worktree isolation has subtle branchpoint timing — parallel agents may capture pre-merge HEAD. Verify branch base before merging cross-track work.
+2. License-block-on-sandbox is a valid STOP signal: when a dependency's license cannot be programmatically verified, halting beats guessing.
+3. Single source of truth for version (`plugin.json.version`) plus a tiny `jq` mirror script eliminates manifest drift without needing semantic-release tooling.
+4. Cross-phase audits remain essential. Individual phase reviews miss drift between phases.
+5. PostToolUse hook matcher is `Write|Edit`, so Bash writes don't fire it. Scripts that mutate tracked state must be Bash-only to avoid side-effect commits.
 
 ## Style Preferences
 
@@ -71,11 +65,12 @@ Navigation: [[index]] | [[log]] | [[overview]]
 
 ## Active Threads
 
-- DragonScale Mechanism 4 shipped in Phase 4 as an opt-in Topic Selection mode in `skills/autoresearch/`. All four DragonScale mechanisms are now shipped and feature-gated.
-- v1.6.0 not yet pushed to GitHub (local commits only, no git tag created). User controls push and tag timing.
-- CLAUDE.md has one pre-existing uncommitted change ("Release Blog Post" section) that predates this session.
+- v1.5.0 through v1.8.0 tags exist locally (annotated, backfilled on historical release commits). User decides when to `git push origin --tags`.
+- CI gate on first run will surface ~183 wiki-lint findings (vault content quality, not plugin-distribution). Track that cleanup separately if desired, or invert the lint job to "regression-only" mode.
+- Thino plugin (2.6 MB) still vendored in `.obsidian/plugins/thino/`. License-check halted in sandbox; if `Closed source` in manifest stands, removal + setup-vault.sh re-download is unsafe and the bundle must stay until upstream clarifies.
+- `commands/` aliases registered for Claude Code: `/wiki`, `/save`, `/autoresearch`, `/canvas`, `/doc-pipeline`. Other skills (`wiki-ingest`, `wiki-query`, `wiki-lint`, etc.) trigger via natural-language phrases per their SKILL.md descriptions.
 
 ## Repo Locations
 
 - Working: `~/AI-powered_workbench/agent-based-knowledge-management/`
-- Public: https://github.com/philippsied/agent-based-knowledge-management
+- Public: `https://github.com/philippsied/agent-based-knowledge-management`
