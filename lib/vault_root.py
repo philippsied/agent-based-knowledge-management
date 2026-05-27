@@ -69,3 +69,43 @@ def resolve_wiki_root(cli_arg: str | os.PathLike | None = None) -> Path:
     if cli_arg is not None:
         return Path(cli_arg).expanduser().resolve()
     return (Path.cwd() / "wiki").resolve()
+
+
+def main() -> None:
+    """CLI entry point — single source of truth for shell callers.
+
+    Resolution order is identical to the Python helpers
+    (KM_VAULT_PATH env -> positional arg -> cwd). The shell wrapper at
+    lib/vault_root.sh delegates here so behaviour stays in lockstep.
+
+    Usage:
+        python3 vault_root.py --vault [path]   # print resolved vault root
+        python3 vault_root.py --wiki  [path]   # print <vault_root>/wiki
+    """
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Resolve vault or wiki root path."
+    )
+    parser.add_argument(
+        "--vault", nargs="?", const="", default=None,
+        help="Print resolved vault root. Optional positional cli_arg.",
+    )
+    parser.add_argument(
+        "--wiki", nargs="?", const="", default=None,
+        help="Print resolved wiki root (vault_root/wiki). Optional positional cli_arg.",
+    )
+    args = parser.parse_args()
+
+    if args.vault is not None:
+        cli_arg = args.vault or None
+        print(resolve_vault_root(cli_arg))
+    elif args.wiki is not None:
+        cli_arg = args.wiki or None
+        print(resolve_wiki_root(cli_arg))
+    else:
+        parser.error("Specify --vault or --wiki")
+
+
+if __name__ == "__main__":
+    main()
