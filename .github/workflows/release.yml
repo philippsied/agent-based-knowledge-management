@@ -1,0 +1,33 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  attach-pdf:
+    name: Attach PDF to release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+      - name: Install pandoc
+        run: sudo apt-get update && sudo apt-get install -y pandoc texlive-xetex texlive-fonts-recommended
+      - name: Generate PDF
+        run: |
+          if [ ! -f docs/install-guide.md ]; then
+            echo "docs/install-guide.md missing — skipping PDF asset."
+            exit 0
+          fi
+          pandoc docs/install-guide.md -o /tmp/install-guide.pdf
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ ! -f /tmp/install-guide.pdf ]; then
+            echo "No PDF generated — nothing to upload."
+            exit 0
+          fi
+          gh release upload "${{ github.event.release.tag_name }}" /tmp/install-guide.pdf --clobber
