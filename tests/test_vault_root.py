@@ -10,6 +10,7 @@ Run:
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -22,6 +23,24 @@ from vault_root import (  # noqa: E402
     resolve_vault_root,
     resolve_wiki_root,
 )
+
+VAULT_ROOT_PY = ROOT / "lib" / "vault_root.py"
+
+
+def _run_cli(args: list[str], env: dict[str, str] | None = None) -> str:
+    """Run the CLI and return stdout stripped of its trailing newline."""
+    full_env = os.environ.copy()
+    if env is not None:
+        for k, v in env.items():
+            if v is None:
+                full_env.pop(k, None)
+            else:
+                full_env[k] = v
+    result = subprocess.run(
+        [sys.executable, str(VAULT_ROOT_PY), *args],
+        capture_output=True, text=True, check=True, env=full_env,
+    )
+    return result.stdout.rstrip("\n")
 
 
 class Fail(AssertionError):
@@ -135,6 +154,87 @@ def test_empty_env_falls_through():
             _clear_env()
 
 
+def test_cli_vault_with_env():
+    """CLI: --vault with KM_VAULT_PATH set returns the env value."""
+    with tempfile.TemporaryDirectory() as td:
+        td_resolved = Path(td).resolve()
+        out = _run_cli(["--vault"], env={ENV_VAR: td})
+        assert_eq("cli --vault honours env", str(td_resolved), out)
+
+
+def test_cli_wiki_with_env():
+    """CLI: --wiki with KM_VAULT_PATH set returns <env>/wiki."""
+    with tempfile.TemporaryDirectory() as td:
+        td_resolved = Path(td).resolve()
+        out = _run_cli(["--wiki"], env={ENV_VAR: td})
+        assert_eq("cli --wiki honours env", str((td_resolved / "wiki").resolve()), out)
+
+
+def test_cli_vault_with_positional_arg():
+    """CLI: --vault with positional arg and no env returns the argv value."""
+    with tempfile.TemporaryDirectory() as td:
+        td_resolved = Path(td).resolve()
+        out = _run_cli(["--vault", td], env={ENV_VAR: None})
+        assert_eq("cli --vault positional arg", str(td_resolved), out)
+
+
+def test_cli_wiki_with_positional_arg():
+    """CLI: --wiki with positional arg and no env returns the argv as wiki path."""
+    with tempfile.TemporaryDirectory() as td:
+        td_resolved = Path(td).resolve()
+        out = _run_cli(["--wiki", td], env={ENV_VAR: None})
+        assert_eq("cli --wiki positional arg", str(td_resolved), out)
+
+
+def test_cli_env_wins_over_argv():
+    """CLI: env beats positional arg, matching helper precedence."""
+    with tempfile.TemporaryDirectory() as env_td, tempfile.TemporaryDirectory() as argv_td:
+        env_resolved = Path(env_td).resolve()
+        out = _run_cli(["--vault", argv_td], env={ENV_VAR: env_td})
+        assert_eq("cli --vault env > argv", str(env_resolved), out)
+
+
+def test_cli_parity_with_python_helper():
+    """Parity: the CLI prints exactly what resolve_*() returns for the same input.
+
+    Covers a handful of env/argv combinations so that any future drift between
+    the python helper and the CLI surfaces here.
+    """
+    with tempfile.TemporaryDirectory() as a, tempfile.TemporaryDirectory() as b:
+        cases = [
+            # (env, argv, helper, label)
+            (None, None, "vault", "parity vault (no env, no argv)"),
+            (None, a, "vault", "parity vault (argv only)"),
+            (a, None, "vault", "parity vault (env only)"),
+            (a, b, "vault", "parity vault (env beats argv)"),
+            (None, None, "wiki", "parity wiki (no env, no argv)"),
+            (None, a, "wiki", "parity wiki (argv only)"),
+            (a, None, "wiki", "parity wiki (env only)"),
+            (a, b, "wiki", "parity wiki (env beats argv)"),
+        ]
+        for env_val, argv_val, which, label in cases:
+            # Helper invocation (in-process)
+            saved_env = os.environ.pop(ENV_VAR, None)
+            try:
+                if env_val is not None:
+                    os.environ[ENV_VAR] = env_val
+                if which == "vault":
+                    helper_out = str(resolve_vault_root(argv_val))
+                else:
+                    helper_out = str(resolve_wiki_root(argv_val))
+            finally:
+                os.environ.pop(ENV_VAR, None)
+                if saved_env is not None:
+                    os.environ[ENV_VAR] = saved_env
+
+            # CLI invocation
+            cli_args = [f"--{which}"]
+            if argv_val is not None:
+                cli_args.append(argv_val)
+            cli_out = _run_cli(cli_args, env={ENV_VAR: env_val})
+            assert_eq(label, helper_out, cli_out)
+
+
 if __name__ == "__main__":
     try:
         test_default_is_cwd_for_vault_root()
@@ -144,6 +244,12 @@ if __name__ == "__main__":
         test_env_overrides_cwd()
         test_tilde_expansion_in_env()
         test_empty_env_falls_through()
+        test_cli_vault_with_env()
+        test_cli_wiki_with_env()
+        test_cli_vault_with_positional_arg()
+        test_cli_wiki_with_positional_arg()
+        test_cli_env_wins_over_argv()
+        test_cli_parity_with_python_helper()
     except Fail as exc:
         print(exc, file=sys.stderr)
         sys.exit(1)
