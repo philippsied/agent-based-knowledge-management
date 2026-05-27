@@ -1,10 +1,10 @@
 {
   "id": "obsidian-memos",
-  "name": "Thino",
-  "description": "Capturing ideas and save them into daily notes. (Closed source)",
-  "version": "3.0.4",
+  "name": "Obsidian Memos",
+  "version": "1.9.7",
+  "minAppVersion": "0.14.0",
+  "description": "A plugin for capturing ideas in Obsidian. (Thino v1, MIT licensed. Upgrade path: Thino v3 via Pkmer Insider.)",
   "author": "Boninall",
   "authorUrl": "https://github.com/Quorafind/",
-  "isDesktopOnly": false,
-  "minAppVersion": "1.0.0"
+  "isDesktopOnly": false
 }

@@ -18,14 +18,14 @@ When adopting a pattern from another project, plugin, or article:
 
 ---
 
-## 2026-05-28 — Thino plugin redistribution — license unverified (TODO)
+## 2026-05-28 — Thino plugin redistribution — resolved via v1 (MIT) downgrade
 
-- Origin: Track A repo-cleanup pass (concurrent-grove plan); attempt to slim the bundled Obsidian plugin payload.
-- Adopted: nothing yet — the planned step was to vendor only `data.json` and have `bin/setup-vault.sh` re-download `main.js` / `manifest.json` / `styles.css` from the Thino GitHub releases (analogous to the existing Excalidraw pattern).
-- Adapted: deferred. The plugin self-identifies as "Closed source" in its `manifest.json`, and the sandbox in which this cleanup ran blocks both `gh api` (denied access to `~/.config/gh`) and `curl https://raw.githubusercontent.com/Quorafind/Obsidian-Thino/.../LICENSE`. License terms could therefore not be verified from this session. Until a human reviewer confirms the upstream LICENSE permits redistribution of the release binaries via setup-vault.sh, the Thino bundle remains vendored as-is (no deletion, no setup-vault.sh extension, no `.gitignore` block, no `ATTRIBUTION.md` disclaimer change).
-- Skills / scripts touched: none (intentionally — the cleanup was aborted at the license-check gate).
-- Why we found it useful: documenting the abort prevents the next contributor from repeating the same fetch attempts and rediscovering the sandbox limitation. The next step is a human-driven license check on `https://github.com/Quorafind/Obsidian-Thino` (LICENSE file or README) and, if compatible, executing the planned vendor-to-fetch swap.
-- Risks / caveats: continuing to ship the Thino binaries without a verified license is a legal-distribution risk; do not deepen the dependency until cleared. Also: `data.json` is currently whitelisted in `.gitignore`, so user-state can drift into commits — review when the license question is settled.
+- Origin: Track A repo-cleanup pass (concurrent-grove plan); slim the bundled Obsidian plugin payload by removing vendored binaries. Initial run aborted in sandbox (network restrictions prevented gh/curl license-check on upstream LICENSE); resolution requested by user pointed at the `v1` branch.
+- Adopted: `bin/setup-vault.sh` downloads `main.js` + `styles.css` from the upstream `1.9.7` release; only the (267 B) `manifest.json` ships in-repo (rewritten to advertise v1.9.7 / "Obsidian Memos"). `.obsidian/plugins/thino/{main.js,styles.css,data.json}` removed from git; `.gitignore` extended to cover the downloaded artifacts.
+- Adapted: shipped Thino **v1.9.7 ("Obsidian Memos")** instead of current upstream `main` (v3.0.12). Justification: the `v1` branch carries an explicit `MIT License` (Copyright 2022 Boninall) and 42 tagged releases with binary assets; `main` declares "Closed source" in `manifest.json` and has no LICENSE file. Both versions share plugin id `obsidian-memos`, so a Thino Insider (Pkmer) license-holder can upgrade in-place without state migration.
+- Skills / scripts touched: `bin/setup-vault.sh` (new Thino fetch block, ~10 lines), `.gitignore` (Thino binary block, dropped `data.json` whitelist), `ATTRIBUTION.md` (entry renamed "Thino" → "Obsidian Memos (Thino v1)", license column added), `.obsidian/plugins/thino/manifest.json` (v3.0.4 → v1.9.7 metadata).
+- Why we found it useful: removes a 2.6 MB redistribution that we could not legally justify (manifest declared "Closed source"). Users keep a quick-capture experience out of the box without us shipping a closed-source binary. The upgrade path to v3 stays intact via existing plugin id.
+- Risks / caveats: v1.9.7 lacks UI features added in v2/v3; users expecting modern Thino UX must upgrade themselves. The fetch URL (`https://github.com/Quorafind/Obsidian-Thino/releases/download/1.9.7/...`) is stable for the published 1.9.7 release tag, but the v1 line stopped active development (last `v1` branch commit 2024-03-12) — expect no future security or compatibility patches on this code path. If the upstream owner ever rewrites or deletes the release, `setup-vault.sh` needs a fallback strategy.
 
 ## 2026-05-19 — Bilingual terminology policy (schema-level)
 

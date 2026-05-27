@@ -4,10 +4,14 @@
 .obsidian/workspace-mobile.json
 .obsidian/plugins/*/data.json
 !.obsidian/plugins/calendar/data.json
-!.obsidian/plugins/thino/data.json
 
 # Excalidraw main.js is 8MB — downloaded by setup-vault.sh, not tracked in git
 .obsidian/plugins/obsidian-excalidraw-plugin/main.js
+
+# Obsidian Memos / Thino v1.9.7 binaries — downloaded by setup-vault.sh (MIT, ~1MB)
+.obsidian/plugins/thino/main.js
+.obsidian/plugins/thino/styles.css
+.obsidian/plugins/thino/data.json
 
 # Large binary assets — add your own images to _attachments/images/
 # Uncomment the line below to exclude images from git (recommended for large vaults)

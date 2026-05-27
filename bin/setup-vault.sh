@@ -87,19 +87,35 @@ elif [ -f "$EXCALIDRAW/main.js" ]; then
   echo "✓ Excalidraw main.js already present"
 fi
 
+# ── 6. Download Obsidian Memos / Thino v1.9.7 (MIT, ~1MB combined) ───────────
+# We ship Thino v1 (MIT licensed). Thino v3 is closed-source via Pkmer Insider.
+# Plugin id is `obsidian-memos` on both versions; user can upgrade in-place later.
+THINO="$OBSIDIAN/plugins/thino"
+THINO_RELEASE_URL="https://github.com/Quorafind/Obsidian-Thino/releases/download/1.9.7"
+if [ -f "$THINO/manifest.json" ] && [ ! -f "$THINO/main.js" ]; then
+  echo "Downloading Obsidian Memos (Thino v1.9.7) main.js + styles.css (~1MB)..."
+  curl -sS -L "$THINO_RELEASE_URL/main.js"    -o "$THINO/main.js"
+  curl -sS -L "$THINO_RELEASE_URL/styles.css" -o "$THINO/styles.css"
+  echo "✓ Obsidian Memos v1.9.7 downloaded (MIT licensed)"
+  echo "  Upgrade to Thino v3 (closed source, more features) available via Pkmer Insider:"
+  echo "    https://github.com/Quorafind/Obsidian-Thino"
+elif [ -f "$THINO/main.js" ]; then
+  echo "✓ Obsidian Memos / Thino plugin files already present"
+fi
+
 echo ""
 echo "✓ Setup complete."
 echo ""
 echo "Next steps:"
 echo "  1. Open Obsidian"
 echo "  2. Manage Vaults → Open folder as vault → select: $VAULT"
-echo "  3. Enable community plugins when prompted (Calendar, Thino, Excalidraw, Banners are pre-installed)"
+echo "  3. Enable community plugins when prompted (Calendar, Obsidian Memos (Thino v1), Excalidraw, Banners are pre-installed)"
 echo "  4. Install: Dataview, Templater, Obsidian Git  (Settings → Community Plugins)"
 echo "  5. Type /wiki in Claude Code to scaffold your knowledge base"
 echo ""
 echo "Pre-installed plugins:"
 echo "  - Calendar (sidebar calendar with word count + task dots)"
-echo "  - Thino (quick memo capture)"
+echo "  - Obsidian Memos / Thino v1 (quick memo capture; MIT. v3 available via Pkmer Insider)"
 echo "  - Excalidraw (freehand drawing + image annotation)"
 echo "  - Banners (add banner: to any note frontmatter for header images)"
 echo ""
