@@ -8,7 +8,7 @@ description: >
   Triggers on: "/autoresearch", "autoresearch", "research [topic]", "deep dive into [topic]",
   "investigate [topic]", "find everything about [topic]", "research and file",
   "go research", "build a wiki on".
-allowed-tools: Read Write Edit Glob Grep WebFetch WebSearch
+allowed-tools: Read Write Edit Glob Grep WebFetch WebSearch Bash
 ---
 
 # autoresearch: Autonomous Research Loop
@@ -27,12 +27,64 @@ Read `references/program.md` to load the research objectives and constraints. Th
 
 ## Topic Selection
 
-Three paths to a topic:
+Four paths to a topic, evaluated in order:
 
 ### A. Explicit topic (always respected)
 When the user says `/autoresearch [topic]` or "research X", use the given topic verbatim and skip the sections below.
 
-### B. Boundary-first selection (agenda control, opt-in)
+### B. Research-queue driven (default when no topic given, opt-in via queue file)
+
+When `/autoresearch` is invoked WITHOUT a topic AND the vault has a research queue, default to picking the highest-priority ready task from `wiki/meta/research-queue.md`. This is the **deliberate-agenda** mode: tasks are pre-prioritized, briefed, and dependency-ordered by the user.
+
+Feature detection (shell):
+
+```bash
+if [ -f wiki/meta/research-queue.md ] && [ -x scripts/lint/lint-deps.py ]; then
+  QUEUE_MODE=1
+else
+  QUEUE_MODE=0
+fi
+```
+
+When `QUEUE_MODE=1`:
+
+1. **Concurrency check**: refuse to start if any row already has `status: in-progress`. Surface:
+   ```
+   Refusing to start: R-YYYY-NNN is still in-progress (started YYYY-MM-DD).
+   Mark it done/queued first, or pass an explicit topic argument.
+   ```
+2. **Validate the DAG**: run `python3 scripts/lint/lint-deps.py`. If exit code != 0 (cycles, missing deps, or duplicate IDs), refuse to start and surface the lint output. The queue must be clean.
+3. **Compute ready set**: run `python3 scripts/lint/lint-deps.py --ready`. This returns IDs of tasks where `status: queued` AND all `depends_on:` are `done`, in priority order (P0 first, then FIFO by `created`).
+4. **Helper failure handling**: if the helper exits non-zero, emits no output, or returns an empty list, set `QUEUE_MODE=0` and fall through to section C below. Do NOT improvise a topic.
+5. **Brief enforcement**: read the queue table to resolve the top ID. If its `Brief` cell is `_to brief_` or empty, skip to the next ready ID. If no ready task has a brief, fall through to C.
+6. **Present to user**:
+   ```
+   Selected R-YYYY-NNN [P0/EVAL]: <title>
+   Brief: <brief link>
+   Program home: [[research/programs/<CODE>]]
+   Depends on: <list or —>
+   Proceed? (y / type a topic to override / 'next' for the next ready task / 'cancel')
+   ```
+7. **On confirm**:
+   - Edit the queue row: flip `status: queued` → `status: in-progress`, set `started: <today>`, bump `updated:`.
+   - Use the brief content as the topic input for the research loop. The brief already encodes objectives, sources, stopping condition, and deliverables — respect them verbatim.
+8. **On 'next'**: move to the next ready ID, repeat from step 5.
+9. **On topic override**: set `QUEUE_MODE=0` for this run, do not touch the queue, use the typed text as topic.
+10. **On 'cancel'**: ask via section D (user-chosen).
+
+**During the loop**: never edit `wiki/meta/research-queue.md`'s row schema or other rows. Only the active row's `status`, `started`, `finished`, `updated`, and `deliverables` may be touched. **Never edit eval files** (mirrors the [[Self-Improvement-Loop]] principle: the agenda is the review loop).
+
+**On loop completion (success)**:
+- Flip the row's `status: in-progress` → `status: done`.
+- Set `finished: <today>`, bump `updated:`.
+- Append `deliverables:` links pointing at every page created in this run (synthesis, sources, concepts, entities).
+- Update `wiki/log.md` per the normal *After Filing* section, plus a `Queue-task: R-YYYY-NNN` line.
+
+**On loop failure or abort**:
+- Flip the row back to `status: queued`. Leave `started:` populated so retry latency is visible.
+- Log the failure mode to `wiki/log.md` under `Queue-task: R-YYYY-NNN — failed (<reason>)`.
+
+### C. Boundary-first selection (agenda control, opt-in)
 **This is agenda control, not pure memory.** DragonScale Memory.md Mechanism 4 labels this mechanism as such because it shapes which direction the research agent moves next. Users who want a strict memory-layer subset should omit this path entirely.
 
 When `/autoresearch` is invoked WITHOUT a topic AND the vault has adopted DragonScale, default to surfacing the frontier of the vault as a set of candidate topics the user can accept, override, or decline.
@@ -47,21 +99,21 @@ else
 fi
 ```
 
-When `BOUNDARY_MODE=1`:
+When `BOUNDARY_MODE=1` AND `QUEUE_MODE=0`:
 
 1. Run `./scripts/boundary-score.py --json --top 5`. Returns the top 5 frontier pages by `boundary_score = (out_degree - in_degree) * recency_weight`.
-2. **Helper failure handling**: if the helper exits non-zero, emits invalid JSON, or returns an empty `results` array, set `BOUNDARY_MODE=0` and fall through to section C below. Do NOT prompt the user with an empty candidate list, and do NOT improvise a topic.
+2. **Helper failure handling**: if the helper exits non-zero, emits invalid JSON, or returns an empty `results` array, set `BOUNDARY_MODE=0` and fall through to section D below. Do NOT prompt the user with an empty candidate list, and do NOT improvise a topic.
 3. Present the candidate list to the user: "Your top frontier pages are: [list]. Research which one? (1-5, or type a topic to override, or say 'cancel' to be asked normally.)"
 4. If the user picks 1-5, use the selected page's title as the topic.
 5. If the user types free text, use that.
-6. If the user cancels or does not choose, fall through to C.
+6. If the user cancels or does not choose, fall through to D.
 
 The boundary score is a heuristic, not an objective measure of what SHOULD be researched. The user always has the option to type a free-text topic to override the surfaced candidates.
 
 **Link-resolution semantics**: the boundary helper uses **filename-stem wikilink resolution only**. `[[Foo]]` is counted as an edge to `Foo.md` anywhere in the vault. Aliases declared via frontmatter `aliases:` are **not** parsed. Folder-qualified links (e.g. `[[notes/Foo]]`) are resolved by stem only. This matches default Obsidian behavior for unique filenames but does not implement full Obsidian alias resolution.
 
-### C. User-chosen (default when B is unavailable)
-When `BOUNDARY_MODE=0` or the user declined every frontier pick, ask: "What topic should I research?"
+### D. User-chosen (final fallback)
+When `QUEUE_MODE=0` AND `BOUNDARY_MODE=0`, or the user declined every queue/frontier pick, ask: "What topic should I research?"
 
 ---
 
@@ -172,8 +224,14 @@ sources:
    - Pages created: [[Page 1]], [[Page 2]], ...
    - Synthesis: [[Research: Topic]]
    - Key finding: [one sentence]
+   - Queue-task: R-YYYY-NNN     # only if QUEUE_MODE=1
    ```
 3. Update `wiki/hot.md` with the research summary
+4. **If `QUEUE_MODE=1`**: update the row in `wiki/meta/research-queue.md`:
+   - Flip `status: in-progress` → `status: done`.
+   - Set `finished: <today>`, bump `updated:`.
+   - Append `deliverables:` links pointing at every page created in this run.
+   - Re-run `python3 scripts/lint/lint-deps.py` to confirm the DAG is still clean and to print the new ready set.
 
 ---
 
