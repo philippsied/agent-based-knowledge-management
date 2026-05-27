@@ -51,12 +51,18 @@ Do NOT read the wiki for general coding questions or things already in this proj
 | Skill | Trigger |
 |-------|---------|
 | `/wiki` | Setup, scaffold, route to sub-skills |
-| `ingest [source]` | Single or batch source ingestion |
-| `query: [question]` | Answer from wiki content |
-| `lint the wiki` | Health check |
-| `/save` | File the current conversation as a structured wiki note |
-| `/autoresearch [topic]` | Autonomous research loop: search, fetch, synthesize, file |
-| `/canvas` | Visual layer: add images, PDFs, notes to Obsidian canvas |
+| `/wiki-ingest` (or `ingest [source]`) | Single or batch source ingestion (files, URLs, images) |
+| `/wiki-query` (or `query: [question]`) | Answer questions from wiki content (Quick / Standard / Deep modes) |
+| `/wiki-lint` (or `lint the wiki`) | Health check: orphans, dead links, gaps, stale claims |
+| `/wiki-fold` | DragonScale Mechanism 1 — rollup of log entries into meta-pages |
+| `/save` | File the current conversation or insight as a structured wiki note |
+| `/autoresearch [topic]` | Autonomous research loop (search, fetch, synthesize, file) with optional topic selection |
+| `/canvas` | Visual layer: add images, text, PDFs, wiki pages to Obsidian canvas |
+| `/defuddle` | Strip clutter from URLs before ingest (40-60% token savings) |
+| `/doc-pipeline` | Convert `.doc/.docx/.pdf/.pptx/.xlsx/...` into ingest-ready Markdown with QC gate |
+| `/obsidian-bases` | Create and edit Obsidian Bases (`.base`) database-style views |
+| `/obsidian-markdown` | Obsidian-flavored Markdown / wikilink / callout helpers |
+| `/research-brief` | Construct or audit autoresearch briefs against W1-W12 conventions |
 
 ## MCP (Optional)
 
