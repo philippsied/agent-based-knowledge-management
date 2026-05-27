@@ -85,13 +85,13 @@ sources:
 ### 8. Productivity Wrapper (Daily/Weekly Reviews)
 **Source**: ballred/obsidian-claude-pkm
 **What it is**: Optional `/daily` and `/weekly` skills that connect goal tracking to the knowledge base.
-**Could be a separate plugin** rather than bundled into claude-obsidian.
+**Could be a separate plugin** rather than bundled into agentic-knowledge-management.
 **Goal cascade**: 3-Year Vision → Yearly Goals → Projects → Weekly → Daily.
 
 ### 9. Multi-Agent Compatibility (Cursor, Windsurf, Codex)
 **Source**: Ar9av/obsidian-wiki, kepano/obsidian-skills
 **What it is**: A `setup.sh` or `/wiki-convert` command that generates `.cursor/rules/`, `AGENTS.md`, `GEMINI.md` equivalents so the wiki skills work in other coding agents.
-**Note**: kepano already published skills in Agent Skills format — claude-obsidian is already in that format. Just needs the adapter files.
+**Note**: kepano already published skills in Agent Skills format — agentic-knowledge-management is already in that format. Just needs the adapter files.
 
 ### 10. Marp Presentation Output
 **Source**: rvk7895/llm-knowledge-bases, ekadetov/llm-wiki
@@ -121,7 +121,7 @@ sources:
 
 ## Competitive Positioning
 
-After this research, claude-obsidian's unique advantages remain:
+After this research, agentic-knowledge-management's unique advantages remain:
 - **Hot cache** — no one else has this session context mechanism
 - **Canvas visual layer** — unique in the LLM Wiki category
 - **/save conversation** — filing chat → wiki is a distinct workflow
