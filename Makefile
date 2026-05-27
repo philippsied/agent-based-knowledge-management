@@ -1,12 +1,14 @@
 # agentic-knowledge-management Makefile
 # Test runner entry points for DragonScale, lint tooling, and the vault-root resolver.
 
-.PHONY: test test-address test-tiling test-boundary test-vault-root test-terminology test-title-overlap test-lint-orphans test-run-lint lint setup-dragonscale clean-test-state help
+.PHONY: test test-address test-tiling test-boundary test-vault-root test-terminology test-title-overlap test-lint-orphans test-run-lint test-sync-versions lint sync-versions release setup-dragonscale clean-test-state help
 
 help:
 	@echo "agentic-knowledge-management developer targets:"
 	@echo "  make test                  Run all tests"
 	@echo "  make lint                  Run the canonical wiki-quality lint aggregator"
+	@echo "  make sync-versions         Mirror plugin.json version into marketplace.json"
+	@echo "  make release VERSION=X.Y.Z Prepare a new release (test + lint + bump + commit + tag)"
 	@echo "  make test-vault-root       lib/vault_root.{py,sh} resolver tests"
 	@echo "  make test-address          scripts/allocate-address.sh tests (shell)"
 	@echo "  make test-tiling           scripts/tiling-check.py tests (python, no ollama required)"
@@ -15,10 +17,11 @@ help:
 	@echo "  make test-title-overlap    scripts/lint-title-overlap.py tests"
 	@echo "  make test-lint-orphans     scripts/lint-orphans.py tests"
 	@echo "  make test-run-lint         scripts/run-lint.sh aggregator tests"
+	@echo "  make test-sync-versions    bin/sync-versions.sh tests"
 	@echo "  make setup-dragonscale     Run bin/setup-dragonscale.sh against this vault"
 	@echo "  make clean-test-state      Remove runtime lockfiles and tiling cache"
 
-test: test-vault-root test-address test-tiling test-boundary test-terminology test-title-overlap test-lint-orphans test-run-lint
+test: test-vault-root test-address test-tiling test-boundary test-terminology test-title-overlap test-lint-orphans test-run-lint test-sync-versions
 	@echo ""
 	@echo "All tests passed."
 
@@ -58,6 +61,17 @@ test-lint-orphans:
 test-run-lint:
 	@echo "=== test_run_lint.sh ==="
 	@bash tests/test_run_lint.sh
+
+test-sync-versions:
+	@echo "=== test_sync_versions.sh ==="
+	@bash tests/test_sync_versions.sh
+
+sync-versions:
+	@bash bin/sync-versions.sh
+
+release:
+	@if [ -z "$(VERSION)" ]; then echo "Usage: make release VERSION=X.Y.Z"; exit 2; fi
+	@bash bin/release.sh $(VERSION)
 
 setup-dragonscale:
 	@bash bin/setup-dragonscale.sh
