@@ -67,7 +67,7 @@ Navigation: [[index]] | [[log]] | [[overview]]
 
 - v1.5.0 through v1.8.0 tags exist locally (annotated, backfilled on historical release commits). User decides when to `git push origin --tags`.
 - CI gate on first run will surface ~183 wiki-lint findings (vault content quality, not plugin-distribution). Track that cleanup separately if desired, or invert the lint job to "regression-only" mode.
-- Thino plugin (2.6 MB) still vendored in `.obsidian/plugins/thino/`. License-check halted in sandbox; if `Closed source` in manifest stands, removal + setup-vault.sh re-download is unsafe and the bundle must stay until upstream clarifies.
+- Thino bundle removed in favor of v1.9.7 ("Obsidian Memos", MIT). `.obsidian/plugins/thino/{main.js,styles.css}` (~2.6 MB) deleted from the repo; `setup-vault.sh` now downloads them from the upstream `1.9.7` release at first run, analogous to the Excalidraw pattern. Users with a Thino Insider (Pkmer) license can upgrade in-place (plugin id `obsidian-memos` is shared between v1/v3).
 - `commands/` aliases registered for Claude Code: `/wiki`, `/save`, `/autoresearch`, `/canvas`, `/doc-pipeline`. Other skills (`wiki-ingest`, `wiki-query`, `wiki-lint`, etc.) trigger via natural-language phrases per their SKILL.md descriptions.
 
 ## Repo Locations
