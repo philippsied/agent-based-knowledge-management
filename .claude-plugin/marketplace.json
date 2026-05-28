@@ -14,7 +14,7 @@
       "source": {
         "source": "github",
         "repo": "philippsied/agent-based-knowledge-management",
-        "ref": "v1.8.0"
+        "ref": "v1.8.1"
       },
       "description": "Claude + Obsidian knowledge companion. Sets up a persistent, compounding wiki vault. Covers memory management, session notetaking, knowledge organization, and agent context across projects. Optional DragonScale Memory extension adds hierarchical log folds, deterministic page addresses, embedding-based semantic tiling lint, and boundary-first autoresearch topic selection.",
       "version": "1.8.0",
