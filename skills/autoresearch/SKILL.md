@@ -260,6 +260,27 @@ sources:
    - Set `finished: <today>`, bump `updated:`.
    - Append `deliverables:` links pointing at every page created in this run.
    - Re-run `python3 scripts/lint/lint-deps.py` to confirm the DAG is still clean and to print the new ready set.
+5. **Append a commit-suggestion block to `wiki/meta/pending-commits.md`** (create the file from `wiki/_templates/pending-commits.md` if missing; new blocks go at the TOP, log-style). The block clusters the run's outputs into Conventional Commit-shaped proposals so the user — or a later commit hook — can ship them in one pass.
+
+   Use the in-memory list of pages produced by this run AND `git status --porcelain` to build the file list. Do not include paths the run did not touch.
+
+   ```markdown
+   ## YYYY-MM-DD HH:MM — R-YYYY-NNN <topic>   <!-- omit `R-YYYY-NNN` in QUEUE_MODE=0 -->
+
+   ### feat(research): R-YYYY-NNN <short-topic> autoresearch
+   <synthesis + concepts + entities + sources + decisions + comparisons + templates created>
+
+   ### chore(wiki): refresh coordinator files for R-YYYY-NNN
+   - wiki/hot.md
+   - wiki/index.md
+   - wiki/log.md
+   - wiki/meta/research-queue.md   <!-- only if QUEUE_MODE=1 -->
+   ```
+
+   Rules:
+   - One block per autoresearch run. Never edit prior blocks.
+   - If `git status --porcelain` shows files outside the run's known outputs (e.g. lint script changes, raw clippings), surface them in a `### chore(repo): unrelated changes — confirm before committing` sub-section so the user can decide whether to bundle or split.
+   - Coordinator files (`hot.md`, `index.md`, `log.md`) always go in their own `chore(wiki):` cluster, never bundled into `feat(research):`.
 
 ---
 
