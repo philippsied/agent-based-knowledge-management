@@ -8,6 +8,7 @@ Plugin hooks for the agentic-knowledge-management wiki vault. All hooks are defi
 |---|---|---|
 | `SessionStart` | command + prompt | Loads `wiki/hot.md` into context. Command type runs `[ -f wiki/hot.md ] && cat wiki/hot.md` as the canonical safety check (works for non-vault sessions without erroring). Prompt type complements with semantic context restoration. Matcher: `startup\|resume`. |
 | `PostCompact` | prompt | Re-loads `wiki/hot.md` after context compaction. Hook-injected context does NOT survive compaction (only `CLAUDE.md` does), so this hook restores the hot cache mid-session. |
+| `PreToolUse` | command | Enforces vault path-safety and the hyphenated-filename convention before Write/Edit/NotebookEdit calls. Runs `hooks/wiki-path-safety.sh`, which exits 2 with a block reason on stderr when a write violates the whitelist or when a `wiki/*.md` filename contains spaces. Vault root is resolved via `KM_VAULT_PATH` (env) or CWD. See [Path-Safety Hook](#path-safety-hook) below. |
 | `PostToolUse` | command | Auto-commits any wiki/ or .raw/ changes after Write or Edit tool calls. Guarded by `[ -d .git ]` so it never errors in non-git directories, and by `git diff --cached --quiet` so it never creates empty commits. |
 | `Stop` | prompt | Updates `wiki/hot.md` at the end of every Claude response with a brief summary of what changed. |
 
@@ -31,3 +32,16 @@ For Ruby-based hook stacks, see the parallel fix landed in `gabriel-dehan/claude
 ## Non-Vault Sessions
 
 The SessionStart command hook uses `[ -f wiki/hot.md ] && cat wiki/hot.md || true` so it always exits 0, even when no vault is present. This makes the plugin safe to install globally without breaking non-vault Claude Code sessions.
+
+The PreToolUse path-safety hook is also safe in non-vault sessions: it resolves the vault root from `KM_VAULT_PATH` or CWD, applies the whitelist, and allows writes outside the resolved root only when the absolute path falls under `$TMPDIR` / `/tmp`. In a non-vault project the resolved root is the project itself, so writes under the project's own `wiki/`, `scripts/`, `.claude/`, etc. pass through — and writes anywhere else are blocked. If the hook is too aggressive for a particular project, override `KM_VAULT_PATH` to point at a separate sandbox or disable the PreToolUse entry in the project's `.claude/settings.local.json`.
+
+## Path-Safety Hook
+
+The script at `hooks/wiki-path-safety.sh` enforces two deterministic rules:
+
+1. **Path whitelist** — writes are only allowed under `wiki/`, `scripts/`, `.vault-meta/`, `.claude/`, `$TMPDIR`, plus the project-root files `CLAUDE.md`, `README.md`, `.gitignore`, `.gitattributes`, and the single mutable manifest `.raw/.manifest.json`. Everything else (especially `.raw/*` source documents, top-level domain folders like `concepts/`, and arbitrary `~/`) is blocked.
+2. **Filename convention** — `wiki/*.md` filenames may not contain spaces; the canonical form is hyphenated Title-Case (`Mom-Test.md`, not `Mom Test.md`). `wiki/_templates/*` and `wiki/meta/lint-report-*` are exempt because the templater system and lint-report writers legitimately produce filenames the hook cannot pre-validate.
+
+This hook uses the **exit-2 + stderr** output contract (the agent sees the block reason on stderr). That is the supported pattern post-`anthropics/claude-code#10875` resolution; it differs from the other hooks in this plugin which favor `|| true + stdout + exit 0` for compatibility with older inline-hook stacks. Both contracts are correct.
+
+Rationale: a 2026-05-19 batch ingest produced 588 wikilink rewrites and 11 misplaced files because the same conventions were enforced only by prompt. Making them deterministic is the only fix that survives parallel sub-agent fan-out.
