@@ -1,20 +1,39 @@
 ---
-description: Pop the top issue from wiki/meta/OPEN-ISSUES.md (LIFO), verify it, then either remove it (already done) or fix it and remove. Exactly one issue per invocation.
+description: Pop the next ready, highest-priority issue from wiki/meta/OPEN-ISSUES.md stack (priority ASC, ready-first, LIFO tiebreaker), verify it, then either remove it (already done) or fix it and remove. Exactly one issue per invocation.
 allowed-tools: Read, Edit, Bash, Grep, Glob
 ---
 
 # /wiki:fix-issues — Top-of-Stack-Issue verifizieren und abarbeiten
 
-Ziel: **Genau ein** Issue aus `wiki/meta/OPEN-ISSUES.md` pro Aufruf bearbeiten. Stack-Disziplin: LIFO. Verifizieren statt blind fixen.
+Ziel: **Genau ein** Issue aus `wiki/meta/OPEN-ISSUES.md` pro Aufruf bearbeiten. Reihenfolge: Priority ASC (P0 zuerst), bei Gleichstand "ready vor blocked", dann LIFO (jüngster `pushed` zuerst). Verifizieren statt blind fixen.
 
 Sprache: Deutsch für Chat und Issue-Bodies; Englisch nur für Code-Identifier/Commit-Conventions, wo das im Repo etabliert ist.
+
+## Datenmodell (Hybrid: YAML-Stack + Body-Sektionen)
+
+`wiki/meta/OPEN-ISSUES.md` trägt im Frontmatter ein `stack:`-Array — die geordnete Arbeitsliste. Jedes Item:
+
+```yaml
+- id: I-2026-NNN               # year-resetting counter
+  priority: P0|P1|P2|P3
+  section: <whitelist>          # enforcement|lint|vault-content|tooling|templates|skill-plugin|eval-observability
+  title: "…"                    # identisch zum H3-Body-Header
+  pushed: YYYY-MM-DD
+  blocked_by: [I-2026-MMM, …]   # leer = ready
+  inconclusive_since: YYYY-MM-DD # optional, paarweise mit reason
+  inconclusive_reason: "…"       # optional
+  aggregated_from: [I-…, …]      # optional, read-only (von Schritt 7 gesetzt)
+```
+
+Im Body steht pro Item eine `### I-2026-NNN — Titel` Sektion unter ihrem `## <section>`-Block, mit einer Meta-Zeile `**Priority:** … · **Pushed:** … · **WO:** …`. **Die Wahrheit liegt im Frontmatter**; Body-Zeilen (`**Blocked by:**`, `**Note:**`) sind Spiegelungen.
 
 ## Hard rules (nicht verhandelbar)
 
 - **GENAU EIN Issue pro Aufruf.** Mehr nicht. Wenn der User mehr will, ruft er das Command erneut auf.
 - **Niemals OPEN-ISSUES.md editieren ohne saubere Git-Baseline.** Vorher Status prüfen, nachher committen.
 - **Niemals stillschweigend aggregieren.** Der Aggregations-Pfad (siehe Schritt 3) erfordert explizite User-Zustimmung.
-- **Niemals ein Issue löschen, das nicht verifiziert werden konnte.** Bei Inkonklusivität bleibt der Bullet stehen, mit inline-Note `(verified inconclusive YYYY-MM-DD)`.
+- **Niemals ein Issue löschen, das nicht verifiziert werden konnte.** Bei Inkonklusivität bleibt das Item im Stack (Schritt 4d setzt `inconclusive_since`/`inconclusive_reason` und schiebt es ans Ende seiner Priority-Gruppe).
+- **Niemals Stack und Body auseinanderlaufen lassen.** Nach jedem Edit muss die Menge der `stack[].id` exakt der Menge der `### I-…`-Body-Header entsprechen. Drift = Abbruch.
 
 ## Pre-conditions (Guardrails — hart)
 
@@ -25,13 +44,17 @@ Sprache: Deutsch für Chat und Issue-Bodies; Englisch nur für Code-Identifier/C
 
 ## Schritt 1 — Datei vollständig lesen
 
-`Read wiki/meta/OPEN-ISSUES.md` komplett. Inventory aller Issues über alle Kategorien aufbauen.
+`Read wiki/meta/OPEN-ISSUES.md` komplett. Frontmatter `stack:` parsen + Body-Sektionen inventarisieren. `stack[].id`-Set gegen `### I-…`-Header-Set abgleichen — bei Drift sofort ABBRECHEN (Lint-Hint: `scripts/lint/lint-open-issues.py`).
 
 ## Schritt 2 — Top-of-Stack identifizieren
 
-Das Top-Issue ist **der erste Bullet im ersten nicht-leeren Sektions-Block** unter `# Open Issues`. Genau dieser eine Bullet ist das Arbeitsziel.
+Das Top-Issue ist **das erste Stack-Item, dessen `blocked_by` leer ist**. Das Array ist bereits Priority-ASC / ready-first / pushed-DESC sortiert; der erste ready-Eintrag ist damit das höchstpriore bearbeitbare Issue. Body-Detail = die `### I-2026-NNN`-Sektion mit passender ID.
 
-Den Bullet-Text (inkl. WO-Anker) wörtlich notieren — er wird in Schritt 4–6 und im Final-Report referenziert.
+Edge:
+- **`stack` ist leer** → "Keine offenen Issues. Nichts zu tun." Abbrechen, kein Commit.
+- **Alle Items haben nicht-leeres `blocked_by`** → "Stack hat nur blockierte Items: [<id-liste>]. Bitte Blocker zuerst auflösen." Abbrechen, kein Commit.
+
+Die ID, den Titel und den WO-Anker wörtlich notieren — werden in Schritt 4–6 und im Final-Report referenziert.
 
 ## Schritt 3 — Aggregations-Scan (MANDATORY, einmalig)
 
@@ -41,13 +64,13 @@ Bevor irgendetwas geändert wird: Alle Issues nochmal mental durchgehen. Frage: 
 - **JA** → STOP. Dem User folgende Wahl präsentieren und auf Antwort warten:
 
   ```
-  Aggregations-Vorschlag: Issues [<liste>] könnten gebündelt durch einen größeren Fix
+  Aggregations-Vorschlag: Issues [<id-liste>] könnten gebündelt durch einen größeren Fix
   ([Plugin-Update X / Skript-Rewrite Y / Refactor Z]) gemeinsam erledigt werden.
 
   Optionen:
     (1) Nur Top-Issue fixen ("<top-titel>").
     (2) Aggregieren: Die N Issues werden zu einem neuen Top-Issue
-        "<Aggregations-Titel>" zusammengefasst. Die anderen Bullets werden
+        "<Aggregations-Titel>" zusammengefasst. Die anderen Items werden
         entfernt. Der eigentliche Fix wird NICHT in diesem Aufruf gemacht —
         das aggregierte Issue wird committet und in einem späteren
         /wiki:fix-issues-Aufruf bearbeitet.
@@ -70,24 +93,25 @@ Das Top-Issue gegen den aktuellen Repo-Stand prüfen:
 - **Wenn das Issue fehlendes Tooling beschreibt**: `ls`/`Glob` → ist es wirklich noch nicht da?
 - **Wenn das Issue ein Skript/Hook-Verhalten beschreibt**: das Skript laufen lassen (read-only) und Output gegen die Behauptung prüfen.
 
-Drei mögliche Ergebnisse:
+Vier mögliche Ergebnisse:
 
 ### 4a — Already resolved (Symptom ist weg)
 
-→ Bullet aus OPEN-ISSUES.md entfernen.
+→ Stack-Item (Frontmatter) **und** `### I-…`-Body-Sektion entfernen — beide.
 → Eintrag in `wiki/log.md` **oben** anfügen (neue Einträge top):
   ```
-  ## [YYYY-MM-DD] verify | resolved: <issue-titel>
+  ## [YYYY-MM-DD] verify | resolved: <id> <issue-titel>
   - Operation: `/wiki:fix-issues` Top-of-Stack-Verifikation.
   - Status: resolved — <kurze Begründung mit Evidenz (Output, Commit-Ref)>.
   - Why: <ein Satz zur Wurzel — was hat es eigentlich gefixt>.
   ```
+→ Frontmatter `updated:` auf heute. Stack/Body-Sync prüfen.
 → Weiter zu Schritt 5.
 
 ### 4b — Stale aber teilweise wahr (z.B. Zeilennummer driftet, Count drifted)
 
-→ Bullet **nicht** entfernen.
-→ Den ungenauen Teil im Bullet in-place patchen (Zeilennummer korrigieren, Count aktualisieren, Datum verschieben).
+→ Item **nicht** entfernen.
+→ Den ungenauen Teil in der Body-Sektion in-place patchen (Zeilennummer korrigieren, Count aktualisieren). `pushed` nicht ändern.
 → Frontmatter `updated:` auf heute.
 → Kein log.md-Eintrag nötig (Issue bleibt offen).
 → Weiter zu Schritt 5.
@@ -96,69 +120,92 @@ Drei mögliche Ergebnisse:
 
 → Den Fix durchführen. Konventionelle Tools (Edit, Write) für Code-Änderungen.
 → Nach erfolgreichem Fix:
-  - Bullet aus OPEN-ISSUES.md entfernen.
+  - Stack-Item + `### I-…`-Body-Sektion entfernen — beide.
   - Eintrag in `wiki/log.md` oben anfügen:
     ```
-    ## [YYYY-MM-DD] fix | <issue-titel>
+    ## [YYYY-MM-DD] fix | <id> <issue-titel>
     - Operation: `/wiki:fix-issues` Top-of-Stack-Fix.
     - Change: <kurz, was geändert wurde — Datei + Kern-Edit>.
     - Why: <ein Satz, der die Ursprungs-Begründung des Issues spiegelt>.
     ```
-→ Frontmatter `updated:` auf heute (beide Files).
+→ Frontmatter `updated:` auf heute (beide Files). Stack/Body-Sync prüfen.
+→ Weiter zu Schritt 5.
+
+### 4d — Inconclusive (Verifikation ohne klares Ergebnis, z.B. Sandbox/fehlendes Tool)
+
+→ Item **nicht** entfernen.
+→ Im Stack-Item `inconclusive_since: <heute>` + `inconclusive_reason: "<grund>"` setzen.
+→ In der Body-Sektion eine Zeile `**Note:** inconclusive since <heute> — <grund>` ergänzen (Spiegelung).
+→ Das Item innerhalb seiner Priority-Gruppe ans **Ende** sortieren, damit der nächste Aufruf nicht erneut daran hängenbleibt.
+→ Frontmatter `updated:` auf heute. Stack/Body-Sync prüfen.
 → Weiter zu Schritt 5.
 
 ## Schritt 5 — Commit-Disziplin
 
 - **Pfad 4a (resolved, kein Code-Fix nötig)**: ein Commit, Format:
   ```
-  chore(meta): resolve "<issue-titel>"
+  chore(meta): resolve "<id> <issue-titel>"
 
-  Verified <kurze Evidenz>. Removed from OPEN-ISSUES.md, logged in wiki/log.md.
+  Verified <kurze Evidenz>. Removed from OPEN-ISSUES.md stack + body, logged in wiki/log.md.
   ```
 - **Pfad 4b (stale patch)**: ein Commit, Format:
   ```
-  chore(meta): patch stale ref in "<issue-titel>"
+  chore(meta): patch stale ref in "<id> <issue-titel>"
 
-  <was korrigiert wurde — Zeile/Count/Datum>.
+  <was korrigiert wurde — Zeile/Count>.
   ```
 - **Pfad 4c (real fix)**: bis zu **zwei** Commits:
   1. Der Code-Fix: `fix(<scope>): <was>` oder `feat(<scope>): <was>`.
-  2. Die Meta-Aktualisierung: `chore(meta): resolve "<issue-titel>"`.
+  2. Die Meta-Aktualisierung: `chore(meta): resolve "<id> <issue-titel>"`.
+- **Pfad 4d (inconclusive)**: ein Commit, Format:
+  ```
+  chore(meta): mark "<id> <issue-titel>" inconclusive (since <YYYY-MM-DD>)
+
+  <grund — warum Verifikation nicht abschließbar war>.
+  ```
 
 Niemals --no-verify. Niemals --amend (wir bauen frische Commits, damit die History sauber ist).
 
 ## Schritt 6 — Final-Report (3 Zeilen)
 
 ```
-Top-Issue: <titel>.
-Outcome: <resolved | patched-stale | fixed | aggregated>.
-New top of stack: <titel des nächsten Bullets>.
+Top-Issue: <id> <titel>.
+Outcome: <resolved | patched-stale | fixed | inconclusive | aggregated>.
+New top of stack: <id + titel des nächsten ready-Items>.
 ```
 
 Bei Bedarf eine vierte Zeile mit dem Commit-Hash der finalen Änderung.
 
 ## Schritt 7 — Aggregations-Pfad (nur wenn User Antwort (2) gewählt hat)
 
-1. Alle N betroffenen Bullets aus OPEN-ISSUES.md entfernen (über die jeweiligen Kategorien hinweg).
-2. **Einen neuen Bullet** ganz oben in der ersten Kategorie einfügen, der den Bündel-Fix als Top-Issue beschreibt. Schema:
+1. Alle N betroffenen Stack-Items + ihre N `### I-…`-Body-Sektionen entfernen (über die jeweiligen Sektionen hinweg).
+2. **Ein neues Stack-Item** mit nächster freier ID anlegen, das den Bündel-Fix beschreibt, plus eine neue `### I-…`-Body-Sektion in der passenden `## <section>`. Frontmatter-Feld `aggregated_from: [<id-1>, …, <id-N>]` enthält die N entfernten IDs. Schema:
 
-   ```
-   - **<Aggregations-Titel> [aggregated <YYYY-MM-DD>]** — <Beschreibung des einen größeren Fixes, der alle N Issues löst>. Ersetzt N=<n> Vorgänger-Issues: <kommagetrennte Liste der entfernten Titel>. WO: `<haupt-pfad>` + verwandte.
+   ```yaml
+   - id: I-2026-NNN
+     priority: <höchste der N>
+     section: <haupt-section>
+     title: "<Aggregations-Titel>"
+     pushed: <heute>
+     blocked_by: []
+     aggregated_from: [<id-1>, …, <id-N>]
    ```
 
-3. Frontmatter `updated:` auf heute.
-4. **Kein Fix durchführen** — der Sinn des Aggregations-Pfads ist, mehrere Issues zu einem zu konsolidieren, ohne sie sofort zu lösen.
+3. Frontmatter `updated:` auf heute. Stack/Body-Sync prüfen.
+4. **Kein Fix durchführen** — der Sinn des Aggregations-Pfads ist Konsolidierung, nicht sofortige Lösung.
 5. Ein Commit, Format:
    ```
-   chore(meta): aggregate <N> issues into "<aggregations-titel>"
+   chore(meta): aggregate <N> issues into "<id> <aggregations-titel>"
 
-   Ersetzt: <kommagetrennte Liste>. Begründung: <ein Satz, warum der gebündelte Fix sinnvoller ist als N einzelne>.
+   Ersetzt: <kommagetrennte id-Liste>. Begründung: <ein Satz, warum der gebündelte Fix sinnvoller ist als N einzelne>.
    ```
 6. Final-Report wie in Schritt 6, Outcome = `aggregated`.
 
 ## Edge Cases
 
-- **OPEN-ISSUES.md ist leer (keine Bullets unter irgendeiner Sektion)**: Mit "Keine offenen Issues. Nichts zu tun." abbrechen, kein Commit.
-- **Top-Issue ist mehrdeutig** (z.B. zwei Bullets im ersten Block — sollte nicht passieren, aber falls): den lexikalisch ersten nehmen.
-- **Verifikation schlägt aus technischen Gründen fehl** (Sandbox, fehlendes Tool): inline-Note `(verified inconclusive YYYY-MM-DD: <grund>)` ergänzen, Bullet stehen lassen, kein Removal. Ein Commit mit `chore(meta): mark "<titel>" inconclusive`.
+- **OPEN-ISSUES.md `stack` ist leer**: "Keine offenen Issues. Nichts zu tun." Abbrechen, kein Commit.
+- **Alle Items blockiert**: "Stack hat nur blockierte Items: [<id-liste>]. Bitte Blocker zuerst auflösen." Abbrechen, kein Commit.
+- **`blocked_by` zeigt auf nicht-existente ID**: harter Abbruch, Hinweis auf `scripts/lint/lint-open-issues.py`. Kein Edit.
+- **Stack/Body out of sync** (id-Set ≠ Header-Set): harter Abbruch, kein Edit, Lint-Hint.
+- **Verifikation schlägt aus technischen Gründen fehl** (Sandbox, fehlendes Tool): das ist Pfad 4d (inconclusive), nicht Abbruch.
 - **Fix verändert mehr Files als gedacht**: dem User vor dem Commit den Diff zeigen und Bestätigung einholen.
