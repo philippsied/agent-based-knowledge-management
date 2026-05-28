@@ -109,7 +109,7 @@ claude-obsidian-archive/
 # User-specific attachments
 _attachments/
 
-# DragonScale runtime lockfiles and local caches (flock + embedding cache; state files like counter.txt and thresholds.json ARE tracked)
+# DragonScale runtime lockfiles and local caches (flock + embedding cache)
 .vault-meta/.address.lock
 .vault-meta/.tiling.lock
 .vault-meta/tiling-cache.json
@@ -117,3 +117,13 @@ _attachments/
 
 # Eval-run artifacts (per-run timestamped output; cases themselves ARE tracked)
 evals/results/
+
+# Vault content is NOT shipped with the plugin distribution.
+# Each install scaffolds its own vault via bin/setup-vault.sh.
+# Only the directory anchors (.gitkeep) and shared default config remain tracked.
+/wiki/*
+!/wiki/.gitkeep
+/.raw/*
+!/.raw/.gitkeep
+.vault-meta/address-counter.txt
+.vault-meta/legacy-pages.txt

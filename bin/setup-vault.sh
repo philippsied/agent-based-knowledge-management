@@ -17,6 +17,26 @@ mkdir -p "$OBSIDIAN/snippets"
 mkdir -p "$VAULT/.raw"
 mkdir -p "$VAULT/wiki/concepts" "$VAULT/wiki/entities" "$VAULT/wiki/sources" "$VAULT/wiki/meta"
 mkdir -p "$VAULT/_templates"
+mkdir -p "$VAULT/.vault-meta"
+
+# ── 1a. Scaffold DragonScale state files (idempotent) ─────────────────────────
+# These are per-vault state. The plugin distribution does NOT ship them; each
+# vault initializes its own counter and legacy-pages manifest on first run.
+if [ ! -f "$VAULT/.vault-meta/address-counter.txt" ]; then
+  printf '0\n' > "$VAULT/.vault-meta/address-counter.txt"
+fi
+
+if [ ! -f "$VAULT/.vault-meta/legacy-pages.txt" ]; then
+  cat > "$VAULT/.vault-meta/legacy-pages.txt" << 'EOF'
+# DragonScale legacy-pages manifest
+# rollout: vault-local
+#
+# List, one path per line, any pages whose frontmatter `created:` date is
+# post-rollout but which should still be treated as legacy (i.e. not required
+# to carry a deterministic c-NNNNNN address). One path per line, relative to
+# the vault root. Lines starting with '#' are comments.
+EOF
+fi
 
 # ── 2. Write graph.json ───────────────────────────────────────────────────────
 cat > "$OBSIDIAN/graph.json" << 'EOF'

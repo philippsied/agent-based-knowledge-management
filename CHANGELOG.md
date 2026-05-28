@@ -2,6 +2,13 @@
 
 All notable changes to agentic-knowledge-management. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- **Vault content excluded from plugin distribution.** `wiki/`, `.raw/` source documents, and per-vault DragonScale state files (`.vault-meta/address-counter.txt`, `.vault-meta/legacy-pages.txt`) are no longer tracked. The plugin ships only the directory anchors (`wiki/.gitkeep`, `.raw/.gitkeep`) and shared default config (`.vault-meta/tiling-thresholds.json`). Each install scaffolds its own vault state via `bin/setup-vault.sh`. Eliminates the prior CI-lint noise (182 errors / 37 warnings sourced exclusively from the maintainer's working vault) and removes ~5.3 MB of personal knowledge content from every install.
+- **`bin/setup-vault.sh`** now scaffolds `.vault-meta/` with a fresh `address-counter.txt` (seeded `0`) and a `legacy-pages.txt` template. Idempotent: existing files are preserved.
+
 ## [1.8.0] - 2026-05-26
 
 First two PRs of the [upstream roadmap](docs/upstream-roadmap.md) for deterministic wiki-quality tooling. PR0 lays the portability foundation; PR1 ships the canonical lint aggregator on top of it.
