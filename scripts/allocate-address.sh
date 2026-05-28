@@ -46,6 +46,15 @@ scan_max_c_address() {
     echo 0
     return
   fi
+  # Short-circuit on empty wiki. The downstream xargs+awk pipeline interacts
+  # awkwardly with `set -o pipefail` on some Linux xargs/awk combinations when
+  # given no input; checking up front keeps the empty case deterministic.
+  local md_count
+  md_count=$(find "$WIKI_DIR" -type f -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$md_count" -eq 0 ]; then
+    echo 0
+    return
+  fi
   find "$WIKI_DIR" -type f -name '*.md' -print0 2>/dev/null \
     | xargs -0 awk '
         FNR == 1 { state = "pre"; next_is_fm = ($0 == "---") ? 1 : 0 }
