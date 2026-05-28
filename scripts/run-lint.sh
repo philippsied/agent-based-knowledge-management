@@ -194,6 +194,44 @@ if [ -x "$SCRIPT_DIR/lint-title-overlap.py" ]; then
   TITLE_OVERLAP=$(awk '/^[0-9]/{n++} END{print n+0}' "$TMP/title.txt")
 fi
 
+# --- check: research_queue_dag (error; skipped when queue file absent) ----
+#
+# lint-deps.py validates wiki/meta/research-queue.md when it exists. The
+# check is skipped silently for vaults that do not use the research-queue
+# pattern (no queue file means count 0, no error).
+
+DAG_DUPLICATES=0
+DAG_MISSING=0
+DAG_CYCLES=0
+DAG_READY=0
+DAG_TASKS=0
+if [ -f "$WIKI_ROOT/meta/research-queue.md" ] && [ -f "$SCRIPT_DIR/lint-deps.py" ]; then
+  if python3 "$SCRIPT_DIR/lint-deps.py" --vault "$VAULT_ROOT" --json > "$TMP/dag.json" 2>/dev/null; then
+    :
+  else
+    # lint-deps exits 1 on validation errors but still emits the JSON; keep it.
+    :
+  fi
+  if [ -s "$TMP/dag.json" ]; then
+    read -r DAG_TASKS DAG_DUPLICATES DAG_MISSING DAG_CYCLES DAG_READY < <(python3 - <<PY
+import json
+try:
+    d = json.load(open("$TMP/dag.json"))
+except Exception:
+    print("0 0 0 0 0"); raise SystemExit(0)
+print(
+    d.get("task_count", 0),
+    len(d.get("duplicates", [])),
+    len(d.get("missing_targets", [])),
+    len(d.get("cycles", [])),
+    len(d.get("ready_set", [])),
+)
+PY
+) || { DAG_TASKS=0; DAG_DUPLICATES=0; DAG_MISSING=0; DAG_CYCLES=0; DAG_READY=0; }
+  fi
+fi
+DAG_ERRORS=$((DAG_DUPLICATES + DAG_MISSING + DAG_CYCLES))
+
 # --- aggregate JSON --------------------------------------------------------
 
 # items previews capped to 30 entries per check to keep the JSON bounded.
@@ -209,6 +247,12 @@ GAPS="$GAPS" \
 TERM_ERR="$TERM_ERR" \
 TERM_WARN="$TERM_WARN" \
 TITLE_OVERLAP="$TITLE_OVERLAP" \
+DAG_TASKS="$DAG_TASKS" \
+DAG_DUPLICATES="$DAG_DUPLICATES" \
+DAG_MISSING="$DAG_MISSING" \
+DAG_CYCLES="$DAG_CYCLES" \
+DAG_READY="$DAG_READY" \
+DAG_ERRORS="$DAG_ERRORS" \
 TMP="$TMP" \
 python3 - > "$TMP/summary.json" << 'PY'
 import json, os
@@ -246,6 +290,14 @@ checks = [
     {"name": "title_overlap", "severity": "info",
      "count": int(os.environ["TITLE_OVERLAP"]),
      "items": head_lines(f"{os.environ['TMP']}/title.txt")},
+    {"name": "research_queue_dag", "severity": "error" if int(os.environ["DAG_ERRORS"]) > 0 else "info",
+     "count": int(os.environ["DAG_ERRORS"]),
+     "duplicates": int(os.environ["DAG_DUPLICATES"]),
+     "missing_targets": int(os.environ["DAG_MISSING"]),
+     "cycles": int(os.environ["DAG_CYCLES"]),
+     "ready_set": int(os.environ["DAG_READY"]),
+     "task_count": int(os.environ["DAG_TASKS"]),
+     "items": []},
 ]
 totals = {"error": 0, "warn": 0, "info": 0}
 for c in checks:
@@ -254,6 +306,9 @@ for c in checks:
     if c["name"] == "terminology":
         totals["error"] += c.get("errors", 0)
         totals["warn"]  += c.get("warns", 0)
+    elif c["name"] == "research_queue_dag":
+        # severity already flipped to "error" when count > 0
+        totals[c["severity"]] += c["count"]
     else:
         totals[c["severity"]] += c["count"]
 summary = {
