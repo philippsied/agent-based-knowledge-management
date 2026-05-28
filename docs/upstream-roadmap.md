@@ -56,7 +56,7 @@ prerequisite for PR3b but does **not** block PR1.5 or PR2.
 ## 1. Why this document exists
 
 The reference vault has accreted a working quality toolchain — a lint aggregator,
-a deterministic path/naming-safety hook, a LIFO issue-tracking workflow, and bulk
+a deterministic path/naming-safety hook, a priority-ordered issue-tracking workflow, and bulk
 maintenance scripts. None of it lives in the plugin yet. The naive move is "copy
 the scripts and the hook into the plugin." This document argues that the naive
 move is **necessary but not sufficient**, defines the architecture that *is*
@@ -209,7 +209,7 @@ PR1.5 / PR2 / PR4 / PR5 can interleave.
 | **PR2** | `hooks/wiki-path-safety.sh` (generalized: configurable whitelist, no `KM_PLUGIN_REPO` default / no `PLUGIN_REPO` clause); register as `PreToolUse` (`Write\|Edit\|NotebookEdit`) in `hooks.json` | Tier 0 author-time | — (parallel) | low |
 | **PR3a** | `.pre-commit-config.yaml` (pre-commit framework — D2) running `run-lint` on staged wiki files; bootstrap section in `CONTRIBUTING.md` (`pre-commit install`) | Tier 1 — commit-time | PR1 | low–med |
 | **PR3b** | `.github/workflows/quality.yml` (the plugin's first CI) running `make lint` + `make test` on PR + push to main; **build fails on ERROR or WARN, INFO reports only** (D3); status badge in README | Tier 2 — merge-time | PR1, PR3a | med |
-| **PR4** | `commands/wiki-handoff.md` + `commands/wiki-fix-issues.md` (LIFO push/pop) + `_templates/open-issues.md` + a `wiki-issues` skill + docs. **Mechanism only, not the vault's issue content** | Issue-tracking workflow | — (self-contained) | med |
+| **PR4** | `commands/wiki-handoff.md` + `commands/wiki-fix-issues.md` (priority-ordered push/pop, ready-first) + `_templates/open-issues.md` + a `wiki-issues` skill + docs. **Mechanism only, not the vault's issue content** | Issue-tracking workflow | — (self-contained) | med |
 | **PR5** | `scripts/rewrite-wikilinks.py` + `scripts/lint-rename.py` (+ `scripts/wiki-prepass.py` *after* fixing the German-compound heuristic at `wiki-prepass.py:28`). **`lint-autofix.py` excluded** (dedupe; `rewrite-wikilinks.py` is the keeper) | Bulk maintenance | PR0 | low |
 
 ### Per-PR detail & acceptance criteria
@@ -282,12 +282,12 @@ PR1.5 / PR2 / PR4 / PR5 can interleave.
 
 **PR4 — Issue-tracking workflow**
 - New: two command files, `_templates/open-issues.md`, `wiki-issues` skill, a
-  short doc. LIFO discipline preserved from the vault commands.
+  short doc. Priority-ordered discipline (ready-first, LIFO tiebreaker) preserved from the vault commands.
 - Ship the **mechanism and the empty template**, never the reference vault's
   issue *content*.
-- Accept: `/wiki:handoff` appends a well-formed stack-top issue against a clean
-  baseline; `/wiki:fix-issues` pops/verifies exactly one; both refuse a dirty
-  `OPEN-ISSUES.md` baseline.
+- Accept: `/wiki:handoff` appends well-formed issues in priority-sorted position
+  against a clean baseline; `/wiki:fix-issues` pops/verifies exactly one ready
+  issue (skipping blocked items); both refuse a dirty `OPEN-ISSUES.md` baseline.
 
 **PR5 — Bulk maintenance utilities**
 - New: `scripts/rewrite-wikilinks.py`, `scripts/lint-rename.py`, tests.
@@ -361,7 +361,7 @@ End state: **plugin = single source of truth; vault = content + thin config.**
 - `scripts/lint/run-lint.sh` (aggregator; now includes `spaced_wikilinks_body`).
 - `scripts/lint/lint-orphans.py`, `lint-rename.py`.
 - `scripts/rewrite-wikilinks.py`, `scripts/wiki-prepass.py`.
-- `.claude/commands/wiki/fix-issues.md` + `handoff.md` (LIFO issue tracking).
+- `.claude/commands/wiki/fix-issues.md` + `handoff.md` (priority-ordered issue tracking).
 - `wiki/meta/OPEN-ISSUES.md` format (template only).
 
 **Already delegating (no action):**
