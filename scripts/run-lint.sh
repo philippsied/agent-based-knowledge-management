@@ -232,6 +232,33 @@ PY
 fi
 DAG_ERRORS=$((DAG_DUPLICATES + DAG_MISSING + DAG_CYCLES))
 
+# --- check: research_program_codes (error; skipped when files absent) -----
+#
+# lint-programs.py validates that every queue row's `program` cell is in
+# the seed-list of wiki/decisions/Research-Program-Codes.md and that each
+# seed code has a home page at wiki/research/programs/<CODE>.md.
+
+PROG_UNKNOWN=0
+PROG_MISSING_PAGES=0
+PROG_TRIAGE=0
+if [ -f "$WIKI_ROOT/meta/research-queue.md" ] \
+   && [ -f "$WIKI_ROOT/decisions/Research-Program-Codes.md" ] \
+   && [ -f "$SCRIPT_DIR/lint-programs.py" ]; then
+  python3 "$SCRIPT_DIR/lint-programs.py" --vault "$VAULT_ROOT" --json > "$TMP/prog.json" 2>/dev/null || true
+  if [ -s "$TMP/prog.json" ]; then
+    read -r PROG_UNKNOWN PROG_MISSING_PAGES PROG_TRIAGE < <(python3 - <<PY
+import json
+try:
+    d = json.load(open("$TMP/prog.json"))
+except Exception:
+    print("0 0 0"); raise SystemExit(0)
+print(len(d.get("unknown_codes", [])), len(d.get("missing_home_pages", [])), len(d.get("triage_tasks", [])))
+PY
+) || { PROG_UNKNOWN=0; PROG_MISSING_PAGES=0; PROG_TRIAGE=0; }
+  fi
+fi
+PROG_ERRORS=$((PROG_UNKNOWN + PROG_MISSING_PAGES))
+
 # --- aggregate JSON --------------------------------------------------------
 
 # items previews capped to 30 entries per check to keep the JSON bounded.
@@ -253,6 +280,10 @@ DAG_MISSING="$DAG_MISSING" \
 DAG_CYCLES="$DAG_CYCLES" \
 DAG_READY="$DAG_READY" \
 DAG_ERRORS="$DAG_ERRORS" \
+PROG_UNKNOWN="$PROG_UNKNOWN" \
+PROG_MISSING_PAGES="$PROG_MISSING_PAGES" \
+PROG_TRIAGE="$PROG_TRIAGE" \
+PROG_ERRORS="$PROG_ERRORS" \
 TMP="$TMP" \
 python3 - > "$TMP/summary.json" << 'PY'
 import json, os
@@ -298,6 +329,12 @@ checks = [
      "ready_set": int(os.environ["DAG_READY"]),
      "task_count": int(os.environ["DAG_TASKS"]),
      "items": []},
+    {"name": "research_program_codes", "severity": "error" if int(os.environ["PROG_ERRORS"]) > 0 else "info",
+     "count": int(os.environ["PROG_ERRORS"]),
+     "unknown_codes": int(os.environ["PROG_UNKNOWN"]),
+     "missing_home_pages": int(os.environ["PROG_MISSING_PAGES"]),
+     "triage_tasks": int(os.environ["PROG_TRIAGE"]),
+     "items": []},
 ]
 totals = {"error": 0, "warn": 0, "info": 0}
 for c in checks:
@@ -306,7 +343,7 @@ for c in checks:
     if c["name"] == "terminology":
         totals["error"] += c.get("errors", 0)
         totals["warn"]  += c.get("warns", 0)
-    elif c["name"] == "research_queue_dag":
+    elif c["name"] in ("research_queue_dag", "research_program_codes"):
         # severity already flipped to "error" when count > 0
         totals[c["severity"]] += c["count"]
     else:
