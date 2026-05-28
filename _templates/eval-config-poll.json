@@ -1,0 +1,113 @@
+{
+  "$schema": "https://promptfoo.dev/config-schema.json",
+  "_comment": "Drop-in Promptfoo skeleton for the wiki-ingest PoLL pilot. See wiki/decisions/PoLL-Pilot-wiki-ingest.md for context. Per-assertion provider overrides give us a 3-juror panel. Aggregate via the named metrics in the results UI.",
+  "description": "Panel-of-LLM-Judges for wiki-ingest quality grading (R-2026-002 pilot, May 2026)",
+
+  "prompts": [
+    "file://prompts/ingest-prompt.txt"
+  ],
+
+  "providers": [
+    {
+      "id": "anthropic:messages:claude-opus-4-7",
+      "label": "ingest-runtime-opus"
+    }
+  ],
+
+  "defaultTest": {
+    "options": {
+      "_comment": "Default grader pinned to keep results reproducible across machines. Per-assertion overrides below give each juror its own model.",
+      "provider": {
+        "id": "anthropic:messages:claude-haiku-4-5",
+        "config": {
+          "temperature": 0,
+          "max_tokens": 1024
+        }
+      }
+    },
+    "vars": {
+      "rubric": "Was the source's primary claim X faithfully extracted, with no fabrication, into the wiki page?"
+    }
+  },
+
+  "tests": [
+    {
+      "_comment": "One representative test case. Replace with the 30-case hand-labeled set from the pilot fixture once available.",
+      "vars": {
+        "source_excerpt": "PASTE SOURCE TEXT HERE",
+        "ingest_output": "PASTE INGESTED WIKI PAGE HERE"
+      },
+      "assert": [
+        {
+          "_comment": "Juror 1: Claude Haiku 4.5 (Anthropic family). Inherits defaultTest grader.",
+          "type": "llm-rubric",
+          "value": "{{rubric}}",
+          "metric": "judge_haiku",
+          "threshold": 0.7
+        },
+        {
+          "_comment": "Juror 2: Gemini 2.5 Flash (Google family).",
+          "type": "llm-rubric",
+          "value": "{{rubric}}",
+          "provider": {
+            "id": "google:gemini-2.5-flash",
+            "config": {
+              "temperature": 0,
+              "responseMimeType": "application/json"
+            }
+          },
+          "metric": "judge_gemini",
+          "threshold": 0.7
+        },
+        {
+          "_comment": "Juror 3: Llama 3.3 70B Versatile via Groq (Meta-Llama family).",
+          "type": "llm-rubric",
+          "value": "{{rubric}}",
+          "provider": {
+            "id": "groq:llama-3.3-70b-versatile",
+            "config": {
+              "temperature": 0,
+              "max_tokens": 1024
+            }
+          },
+          "metric": "judge_llama_groq",
+          "threshold": 0.7
+        }
+      ]
+    }
+  ],
+
+  "outputPath": "results/poll-pilot-{{date}}.json",
+
+  "_protocols": {
+    "_comment": "These describe the post-aggregation rules implemented by the pilot's result-aggregation script, NOT by Promptfoo natively. Promptfoo emits per-juror metrics; the aggregator reads results/*.json and applies these rules.",
+    "aggregation": "Simple majority of 3. Each juror returns pass/fail + score. Final verdict = majority pass/fail.",
+    "position_swap": "For pairwise rubric items, run each juror twice with swapped positions. Both runs must agree for the juror vote to count.",
+    "disagreement_protocol": {
+      "3-0": "Accept majority. Log unanimous.",
+      "2-1": "Re-judge majority side with structured-action-trace template (wiki/_templates/judge-prompt-structured-trace.md). Accept re-judged majority. Log dissent for monthly review.",
+      "1-1-1": "Mark human-review. Add to wiki/meta/disagreement-queue.md.",
+      "abstain_1_of_3": "Take majority of remaining 2; tie → human-review.",
+      "abstain_2_of_3": "Escalate to Claude Sonnet 4.6.",
+      "abstain_3_of_3": "Human review."
+    },
+    "kill_criteria": [
+      "human_agreement < 0.75",
+      "juror_pair_disagreement > 0.35 for 2 consecutive weeks",
+      "cost_per_ingest > 3x single-Opus baseline"
+    ],
+    "success_criteria": [
+      "human_agreement >= 0.85",
+      "juror_pair_disagreement in [0.05, 0.25]",
+      "cost_per_ingest <= 0.005 USD"
+    ]
+  },
+
+  "_references": {
+    "decision_page": "wiki/decisions/PoLL-Pilot-wiki-ingest.md",
+    "synthesis": "wiki/research/Research-PoLL-Implementation-2026.md",
+    "disagreement_protocol": "wiki/concepts/Judge-Disagreement-Protocol.md",
+    "aggregation_strategies": "wiki/concepts/PoLL-Aggregation-Strategies.md",
+    "promptfoo_docs": "https://www.promptfoo.dev/docs/configuration/expected-outputs/model-graded/llm-rubric/"
+  }
+}
