@@ -4,6 +4,8 @@ All notable changes to agentic-knowledge-management. Format: [Keep a Changelog](
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-05-30
+
 ### Changed
 
 - **`/wiki:fix-issues` + `/wiki:handoff` + `_templates/open-issues.md` — hybrid stack schema (breaking behavior change).** `OPEN-ISSUES.md` now carries a YAML frontmatter `stack:` array (the ordered work queue) plus per-issue `### I-YYYY-NNN` body sections. Issues gain stable ids, `priority` (P0–P3), `section` (7-value whitelist: `enforcement`/`lint`/`vault-content`/`tooling`/`templates`/`skill-plugin`/`eval-observability`), `blocked_by`, plus `inconclusive_since`/`inconclusive_reason` and `aggregated_from` metadata. `/wiki:fix-issues` now pops the first *ready* (unblocked) highest-priority issue and gains an inconclusive (4d) path; `/wiki:handoff` inserts in priority-sorted position with year-resetting ids. Ordering changed from pure LIFO to priority-ASC → ready-first → LIFO-tiebreaker. The reference vault's data migration and `lint-open-issues.py` validator land separately in the vault repo.
