@@ -4,6 +4,12 @@ All notable changes to agentic-knowledge-management. Format: [Keep a Changelog](
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-05-31
+
+### Fixed
+
+- **Vault-detection guard for `hooks/wiki-path-safety.sh`.** The PreToolUse hook is registered by a user-scope plugin, so it fired in every session and blocked ordinary writes (`src/`, `lib/`, and similar) in unrelated repositories, and even in the plugin's own development tree. Two guards now bound it. Guard A enforces nothing unless the session is an actual vault (a `.vault-meta/` marker is present or `KM_VAULT_PATH` is set). Guard B only governs writes that resolve inside the vault root. Non-vault sessions and out-of-vault writes now pass through untouched, matching the defensive behavior of the other three hooks.
+
 ## [1.9.0] - 2026-05-30
 
 ### Changed

@@ -40,9 +40,25 @@ fi
 VAULT_ROOT="${KM_VAULT_PATH:-$PWD}"
 VAULT_ROOT="$(cd "$VAULT_ROOT" 2>/dev/null && pwd || echo "$VAULT_ROOT")"
 
+# ---------- Guard A: only enforce inside an actual vault ----------
+# The plugin may be installed at user scope, so this hook fires in EVERY
+# session, including unrelated repos. A non-vault repo has no .vault-meta/
+# marker and no KM_VAULT_PATH; pass it through untouched, like the other hooks.
+if [ ! -d "$VAULT_ROOT/.vault-meta" ] && [ -z "${KM_VAULT_PATH:-}" ]; then
+    exit 0
+fi
+
 case "$FILE" in
     /*) ABS="$FILE" ;;
     *)  ABS="$VAULT_ROOT/$FILE" ;;
+esac
+
+# ---------- Guard B: only regulate writes inside the resolved vault root ----------
+# Out-of-vault writes are not this hook's concern (e.g. KM_VAULT_PATH points at
+# the vault while you work in another repo). Let them pass.
+case "$ABS" in
+    "$VAULT_ROOT"/*) ;;
+    *) exit 0 ;;
 esac
 
 # ---------- Rule 1: path whitelist ----------
