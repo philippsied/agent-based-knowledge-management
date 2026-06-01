@@ -1,7 +1,7 @@
 # agentic-knowledge-management Makefile
 # Test runner entry points for DragonScale, lint tooling, and the vault-root resolver.
 
-.PHONY: test test-address test-tiling test-boundary test-vault-root test-terminology test-title-overlap test-lint-orphans test-run-lint test-sync-versions lint sync-versions release setup-dragonscale clean clean-test-state help
+.PHONY: test test-address test-tiling test-boundary test-vault-root test-terminology test-title-overlap test-lint-orphans test-run-lint test-sync-versions test-wiki-path-safety lint sync-versions release setup-dragonscale clean clean-test-state help
 
 help:
 	@echo "agentic-knowledge-management developer targets:"
@@ -22,7 +22,7 @@ help:
 	@echo "  make clean                 Remove local Python caches and .DS_Store"
 	@echo "  make clean-test-state      Remove runtime lockfiles and tiling cache"
 
-test: test-vault-root test-address test-tiling test-boundary test-terminology test-title-overlap test-lint-orphans test-run-lint test-sync-versions
+test: test-vault-root test-address test-tiling test-boundary test-terminology test-title-overlap test-lint-orphans test-run-lint test-sync-versions test-wiki-path-safety
 	@echo ""
 	@echo "All tests passed."
 
@@ -66,6 +66,10 @@ test-run-lint:
 test-sync-versions:
 	@echo "=== test_sync_versions.sh ==="
 	@bash tests/test_sync_versions.sh
+
+test-wiki-path-safety:
+	@echo "=== test_wiki_path_safety.sh ==="
+	@bash tests/test_wiki_path_safety.sh
 
 sync-versions:
 	@bash bin/sync-versions.sh
