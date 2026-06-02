@@ -38,6 +38,28 @@ if [ ! -f "$VAULT/.vault-meta/legacy-pages.txt" ]; then
 EOF
 fi
 
+# ── 1b. Scaffold path-safety config (idempotent, TTY-gated prompt) ───────────
+# Asks whether this repo also holds non-wiki work next to the wiki. Default is
+# strict, which keeps the hook's exit-2 block. Mixed converts the block into a
+# model-visible reminder. See docs/specs/SPEC_v1.10.0-soft-path-safety-hook.md.
+if [ ! -f "$VAULT/.vault-meta/config.json" ]; then
+  PATH_SAFETY_MODE="strict"
+  if [ -t 0 ]; then
+    printf 'Does this repo also hold non-wiki work (code, docs) next to the wiki? [y/N] '
+    read -r ANSWER
+    case "$ANSWER" in
+      y|Y|yes|YES) PATH_SAFETY_MODE="mixed" ;;
+    esac
+  fi
+  cat > "$VAULT/.vault-meta/config.json" << EOF_CFG
+{
+  "version": 1,
+  "path_safety_mode": "$PATH_SAFETY_MODE"
+}
+EOF_CFG
+  echo "✓ Wrote .vault-meta/config.json (path_safety_mode: $PATH_SAFETY_MODE)"
+fi
+
 # ── 2. Write graph.json ───────────────────────────────────────────────────────
 cat > "$OBSIDIAN/graph.json" << 'EOF'
 {
