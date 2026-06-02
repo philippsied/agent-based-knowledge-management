@@ -27,7 +27,8 @@ FILE=$(printf '%s' "$INPUT" | python3 -c '
 import json, sys
 try:
     d = json.load(sys.stdin)
-    print(d.get("tool_input", {}).get("file_path", ""))
+    ti = d.get("tool_input", {})
+    print(ti.get("file_path") or ti.get("notebook_path", ""))
 except Exception:
     print("")
 ')
@@ -47,6 +48,33 @@ VAULT_ROOT="$(cd "$VAULT_ROOT" 2>/dev/null && pwd || echo "$VAULT_ROOT")"
 if [ ! -d "$VAULT_ROOT/.vault-meta" ] && [ -z "${KM_VAULT_PATH:-}" ]; then
     exit 0
 fi
+
+# ---------- Config: resolve path-safety mode ----------
+# Single source: .vault-meta/config.json. No env override.
+# Bootstrap is idempotent and silent: vaults predating v1.10.0 get a strict
+# config on the next hook fire so the read path has no missing-file branch.
+CONFIG_FILE="$VAULT_ROOT/.vault-meta/config.json"
+if [ ! -f "$CONFIG_FILE" ]; then
+    printf '%s\n' '{' '  "version": 1,' '  "path_safety_mode": "strict"' '}' > "$CONFIG_FILE"
+fi
+
+MODE=$(python3 -c '
+import json, sys
+try:
+    with open(sys.argv[1]) as fh:
+        data = json.load(fh)
+except Exception:
+    sys.stderr.write("wiki-path-safety: config.json unreadable; falling back to strict\n")
+    print("strict"); sys.exit(0)
+if data.get("version") != 1:
+    sys.stderr.write("wiki-path-safety: config.json unknown version; falling back to strict\n")
+    print("strict"); sys.exit(0)
+mode = data.get("path_safety_mode")
+if mode not in ("strict", "mixed"):
+    sys.stderr.write("wiki-path-safety: config.json unknown path_safety_mode; falling back to strict\n")
+    print("strict"); sys.exit(0)
+print(mode)
+' "$CONFIG_FILE")
 
 case "$FILE" in
     /*) ABS="$FILE" ;;
@@ -81,6 +109,7 @@ case "$ABS" in
     "$VAULT_ROOT"/README.md)           allowed=1 ;;
     "$VAULT_ROOT"/.gitignore)          allowed=1 ;;
     "$VAULT_ROOT"/.gitattributes)      allowed=1 ;;
+    "$VAULT_ROOT"/docs/*)              allowed=1 ;;
 esac
 
 if [ "$under_vault" -eq 0 ] && [ "$allowed" -ne 1 ]; then
