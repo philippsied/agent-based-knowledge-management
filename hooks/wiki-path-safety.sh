@@ -109,7 +109,6 @@ case "$ABS" in
     "$VAULT_ROOT"/README.md)           allowed=1 ;;
     "$VAULT_ROOT"/.gitignore)          allowed=1 ;;
     "$VAULT_ROOT"/.gitattributes)      allowed=1 ;;
-    "$VAULT_ROOT"/docs/*)              allowed=1 ;;
 esac
 
 if [ "$under_vault" -eq 0 ] && [ "$allowed" -ne 1 ]; then
