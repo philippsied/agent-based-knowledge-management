@@ -189,6 +189,43 @@ A typical scaffold creates:
 
 ---
 
+## Path Safety Hook
+
+`hooks/wiki-path-safety.sh` is a PreToolUse hook that enforces vault write conventions: only specific paths under the vault root are writable (`wiki/`, `scripts/`, `.vault-meta/`, `.claude/`, root `CLAUDE.md` / `README.md` / `.gitignore` / `.gitattributes`, `.raw/.manifest.json`), and `wiki/*.md` filenames must be hyphenated. Non-vault sessions and out-of-vault writes pass through untouched.
+
+### Modes
+
+Behavior outside the whitelist is configured via `.vault-meta/config.json`:
+
+```json
+{ "version": 1, "path_safety_mode": "strict" }
+```
+
+| Mode | Non-wiki write | `.raw/` source | Spaced wiki name |
+|------|----------------|----------------|------------------|
+| `strict` (default) | block, `exit 2` | block | block |
+| `mixed` | allow with model-visible reminder | block | block |
+
+`mixed` is for repos that hold both wiki content and active non-wiki work (the plugin's own dev tree, code projects with a `wiki/` knowledge layer). `.raw/` immutability and wiki filename hyphenation stay hard in both modes (wiki integrity rules: they catch the exact failure modes a soft reminder would let slip).
+
+### Switching modes
+
+Edit `.vault-meta/config.json` directly, or accept the prompt during `bin/setup-vault.sh` on fresh installs. The hook re-reads the file on every invocation, so changes take effect on the next tool call. There is no env override: hooks inherit the environment captured at session start, so a runtime variable could not toggle live mid-session.
+
+### Mixed-mode reminder
+
+When `mixed` allows a non-wiki write, the hook emits a single-line PreToolUse JSON with a model-visible reminder:
+
+```json
+{"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "allow", "additionalContext": "Mixed-mode vault: writing `src/foo.ts` outside the wiki whitelist (...). Write ALLOWED. If this is non-wiki work (code, tests, build), proceed. If you meant a wiki page, move it under wiki/."}}
+```
+
+### PostToolUse auto-commit caveat
+
+`PostToolUse` runs `git add wiki/ .raw/ .vault-meta/` after Write/Edit. In `mixed` mode, allowed non-wiki writes are NOT auto-staged by this hook: the matcher stages only wiki paths. Intentional: the hook should not auto-commit code-shaped writes.
+
+---
+
 ## MCP Setup (Optional)
 
 MCP lets Claude read and write vault notes directly without copy-paste.

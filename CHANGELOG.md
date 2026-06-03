@@ -4,6 +4,31 @@ All notable changes to agentic-knowledge-management. Format: [Keep a Changelog](
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-06-03
+
+### Added
+
+- **`hooks/wiki-path-safety.sh` opt-in mixed mode for vaults that double as work trees.** A repo that holds both wiki content and active non-wiki work (the plugin's own dev tree, code projects with a `wiki/` knowledge layer) can now opt out of the strict whitelist for non-wiki paths. In `mixed` mode the hook emits a PreToolUse `permissionDecision: allow` with a model-visible `additionalContext` reminder instead of `exit 2`. Strict mode (default) is unchanged. `.raw/` immutability and wiki filename hyphenation stay hard exits in both modes (wiki integrity rules per SPEC F2 resolution).
+- **`.vault-meta/config.json` config schema** with `version: 1` and `path_safety_mode` (`strict` | `mixed`). Single source of truth; no env override. Bootstrap is idempotent and silent: vaults predating v1.10.0 get a strict config written on the next hook fire so the read path has no missing-file branch. Malformed JSON, unknown `version`, and unknown `path_safety_mode` warn on stderr and fall back to strict.
+
+  Example:
+
+  ```json
+  { "version": 1, "path_safety_mode": "mixed" }
+  ```
+
+- **`bin/setup-vault.sh`** asks "Does this repo also hold non-wiki work (code, docs) next to the wiki? [y/N]" on TTY-interactive fresh installs and writes the chosen mode to `.vault-meta/config.json`. Non-interactive runs default to strict, no prompt. Idempotent: existing config files are preserved.
+- **`tests/test_wiki_path_safety.sh`** extended from 14 to 43 cases. Adds the `strict` x `mixed` mode dimension, NotebookEdit tool-input shape, and config bootstrap / malformed / unknown-version / unknown-mode cases.
+
+### Fixed
+
+- **`hooks/wiki-path-safety.sh` NotebookEdit silent-pass.** The hook matcher is `Write|Edit|NotebookEdit`, but the tool-input extractor only read `file_path`. `NotebookEdit` passes `notebook_path`, so every notebook write silent-passed the hook. The extractor now falls back to `notebook_path` and notebook writes are subject to the same whitelist and mode logic as Write/Edit.
+
+### Notes
+
+- The DRAFT spec discussed a `KM_PATH_SAFETY` runtime env override. It was not shipped: hooks inherit the environment captured at session start, so an env override cannot toggle live mid-session, and documenting it would have been misleading. Mode is config-only: edit `.vault-meta/config.json` to switch.
+- `PostToolUse` runs `git add wiki/ .raw/ .vault-meta/` after Write/Edit. In `mixed` mode, non-wiki writes (for example `src/foo.ts`) are allowed but NOT auto-staged by this hook (the matcher stages only wiki paths). Intentional: the hook should not auto-commit code-shaped writes.
+
 ## [1.9.1] - 2026-05-31
 
 ### Fixed
