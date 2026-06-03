@@ -123,10 +123,43 @@ if [ "$under_vault" -eq 0 ] && [ "$allowed" -ne 1 ]; then
 fi
 
 if [ "$allowed" -ne 1 ]; then
+    # ---------- Rule 1a: .raw/ immutability (hard in both modes) ----------
     case "$ABS" in
         "$VAULT_ROOT"/.raw/*)
             echo "BLOCKED: .raw/ source files are immutable. Only .raw/.manifest.json is writable." >&2
+            echo "Attempted path: $ABS" >&2
+            echo "Vault root:     $VAULT_ROOT" >&2
+            exit 2
             ;;
+    esac
+
+    # ---------- Mixed mode: model-visible reminder, allow the write ----------
+    if [ "$MODE" = "mixed" ]; then
+        REL="${ABS#$VAULT_ROOT/}"
+        python3 -c '
+import json, sys
+rel = sys.argv[1]
+msg = (
+    "Mixed-mode vault: writing `" + rel + "` outside the wiki whitelist "
+    "(wiki/, scripts/, .vault-meta/, .claude/, root CLAUDE.md|README.md|"
+    ".gitignore|.gitattributes, .raw/.manifest.json). Write ALLOWED. "
+    "If this is non-wiki work (code, tests, build), proceed. "
+    "If you meant a wiki page, move it under wiki/."
+)
+out = {
+    "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "allow",
+        "additionalContext": msg,
+    }
+}
+print(json.dumps(out))
+' "$REL"
+        exit 0
+    fi
+
+    # ---------- Strict mode: block ----------
+    case "$ABS" in
         "$VAULT_ROOT"/concepts/*|"$VAULT_ROOT"/entities/*|"$VAULT_ROOT"/sources/*|"$VAULT_ROOT"/people/*|"$VAULT_ROOT"/research/*|"$VAULT_ROOT"/learning/*|"$VAULT_ROOT"/domains/*)
             echo "BLOCKED: wiki content must live under wiki/. Did you mean wiki${ABS#$VAULT_ROOT}?" >&2
             ;;
