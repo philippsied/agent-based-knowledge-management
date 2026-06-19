@@ -25,7 +25,7 @@ assert_eq() {
 }
 
 # Create a fresh throwaway vault
-TMP=$(mktemp -d -t ds-test-XXXXXX)
+TMP=$(mktemp -d "${TMPDIR:-/tmp}/ds-test.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT
 
 mkdir -p "$TMP/scripts" "$TMP/wiki"
