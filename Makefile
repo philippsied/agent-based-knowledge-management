@@ -10,7 +10,7 @@ help:
 	@echo "  make sync-versions         Mirror plugin.json version into marketplace.json"
 	@echo "  make release VERSION=X.Y.Z Prepare a new release (test + lint + bump + commit + tag)"
 	@echo "  make test-vault-root       lib/vault_root.{py,sh} resolver tests"
-	@echo "  make test-address          scripts/allocate-address.sh tests (shell)"
+	@echo "  make test-address          scripts/allocate-address.py tests (python)"
 	@echo "  make test-tiling           scripts/tiling-check.py tests (python, no ollama required)"
 	@echo "  make test-boundary         scripts/boundary-score.py tests (python, no prereqs)"
 	@echo "  make test-terminology      scripts/lint-terminology.py tests"
@@ -36,8 +36,8 @@ test-vault-root:
 	@bash tests/test_vault_root.sh
 
 test-address:
-	@echo "=== test_allocate_address.sh ==="
-	@bash tests/test_allocate_address.sh
+	@echo "=== test_allocate_address.py ==="
+	@python3 tests/test_allocate_address.py
 
 test-tiling:
 	@echo "=== test_tiling_check.py ==="

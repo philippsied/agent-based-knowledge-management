@@ -52,7 +52,7 @@ If you omit the path, it uses the repo root inferred from `bin/`.
 
 ### Universal prerequisite: flock
 
-`flock` is the universal prerequisite. Mechanism 2 uses it directly in `scripts/allocate-address.sh` to guard `.vault-meta/.address.lock`. Mechanism 3 uses flock from Python to guard `.vault-meta/.tiling.lock` around cache I/O.
+Both mechanisms guard their counter/cache with `fcntl.flock` from Python (the POSIX flock(2) syscall), so no util-linux `flock(1)` CLI is required and they work on macOS and Linux alike. Mechanism 2 guards `.vault-meta/.address.lock` in `scripts/allocate-address.py` (invoked via the `scripts/allocate-address.sh` shim); Mechanism 3 guards `.vault-meta/.tiling.lock` around cache I/O.
 
 Quick check:
 
