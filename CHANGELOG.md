@@ -4,6 +4,14 @@ All notable changes to agentic-knowledge-management. Format: [Keep a Changelog](
 
 ## [Unreleased]
 
+### Changed
+
+- **`scripts/allocate-address.sh` is now a thin shell shim over a new `scripts/allocate-address.py`.** DragonScale Mechanism 2's address allocator was reimplemented in Python so it locks via `fcntl.flock` (the POSIX `flock(2)` syscall) instead of the util-linux `flock(1)` CLI. macOS does not ship `flock(1)`, so the shell allocator failed on every macOS invocation (exit 1 with a misleading "could not acquire lock" message) and its test suite could not run there. The Python version works on macOS and Linux with no external binary and keeps the same kernel-managed auto-release on process exit. Vault root now resolves through `lib/vault_root.py` (`KM_VAULT_PATH` -> cwd), completing the PR0 resolver routing and fixing the marketplace-install case where script-relative resolution pointed at the plugin dir. The shim preserves the executable API and the `[ -x ]` feature detection, so `wiki-ingest`, `wiki-lint`, and `setup-dragonscale` are unchanged.
+
+### Fixed
+
+- **Allocator test suite could not run under restricted temp environments.** `tests/test_allocate_address.sh` used `mktemp -d -t`, which ignores `$TMPDIR`. Replaced by `tests/test_allocate_address.py` (plain-python, `$TMPDIR`-aware), which also adds a 20-way concurrency stress exercising the `fcntl.flock` guard.
+
 ## [1.10.0] - 2026-06-03
 
 ### Added
