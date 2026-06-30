@@ -4,6 +4,18 @@ All notable changes to agentic-knowledge-management. Format: [Keep a Changelog](
 
 ## [Unreleased]
 
+### Changed
+
+- **`scripts/run-lint.sh` is now a thin shell shim over `scripts/run-lint.py`.** The canonical wiki-quality lint aggregator was reimplemented in Python (single source of truth; vault root resolves via `lib/vault_root.py`). The shell entrypoint `exec`s the Python port, preserving the documented CLI (`--json` / `--quiet` / `--no-report` / `--help`), the two numeric exit codes (0 read-only/help, 2 usage/missing-wiki; exit never reflects findings), and byte-identical JSON + Markdown report output. Callers are unchanged (`make lint`, CI `bash scripts/run-lint.sh --json`, `bin/release.sh`, `skills/wiki-lint`). Mirrors the `allocate-address.sh → allocate-address.py` wrapper.
+
+### Fixed
+
+- **`dead_link_targets` no longer false-flags wikilinks to `.raw/` sources as dead.** The legacy shell aggregator built the `.raw` half of the valid-target set from `find`'s full path with only a trailing `.md` stripped, so a bare `[[foo]]` could never match a source `.raw/foo.pdf` and was always reported DEAD (the raw-union had never worked). `run-lint.py` now adds each in-glob raw file's basename with the final extension stripped, case-insensitively, ASCII-lowercased, so source citations resolve. This intentionally changes dead-link results versus the previous shell implementation: some links that were falsely dead become valid.
+
+### Removed
+
+- **`tests/test_run_lint.sh` retired** in favor of `tests/test_run_lint.py`. The shell test's top-level-key and seeded-finding assertions are a subset of the Python characterization suite (183 checks). `make test-run-lint` and CI now run `python3 tests/test_run_lint.py`.
+
 ## [1.10.1] - 2026-06-21
 
 ### Changed

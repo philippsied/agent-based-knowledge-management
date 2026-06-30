@@ -16,7 +16,7 @@ help:
 	@echo "  make test-terminology      scripts/lint-terminology.py tests"
 	@echo "  make test-title-overlap    scripts/lint-title-overlap.py tests"
 	@echo "  make test-lint-orphans     scripts/lint-orphans.py tests"
-	@echo "  make test-run-lint         scripts/run-lint.sh aggregator tests"
+	@echo "  make test-run-lint         scripts/run-lint.py aggregator tests (python)"
 	@echo "  make test-sync-versions    bin/sync-versions.sh tests"
 	@echo "  make setup-dragonscale     Run bin/setup-dragonscale.sh against this vault"
 	@echo "  make clean                 Remove local Python caches and .DS_Store"
@@ -60,8 +60,8 @@ test-lint-orphans:
 	@python3 tests/test_lint_orphans.py
 
 test-run-lint:
-	@echo "=== test_run_lint.sh ==="
-	@bash tests/test_run_lint.sh
+	@echo "=== test_run_lint.py ==="
+	@python3 tests/test_run_lint.py
 
 test-sync-versions:
 	@echo "=== test_sync_versions.sh ==="
