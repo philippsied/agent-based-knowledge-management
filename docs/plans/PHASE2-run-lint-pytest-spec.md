@@ -128,15 +128,33 @@ Built from set algebra over four temp files:
    alias/anchor → `sed` strip trailing `.md` → `tr A-Z a-z` → `sort -u`.
 2. `basenames.txt`: `awk -F/ '{f=$NF; sub(/\.md$/,"",f); print tolower(f)}'` over all paths → `sort -u`.
 3. `paths.txt`: wiki-relative slash paths, `.md` stripped, lowercased, `sort -u`.
-4. `raw.txt`: if `$VAULT_ROOT/.raw` exists, basenames of `*.md/*.json/*.txt/*.pdf` lowercased
-   `sort -u`; else empty.
+4. `raw.txt` (**CORRECTED ground truth for `run-lint.py`** — see the divergence box below):
+   if `$VAULT_ROOT/.raw` exists, each `*.md/*.json/*.txt/*.pdf` file contributes exactly **one**
+   valid target = its **basename with the FINAL extension stripped**, ASCII-lowercased; else empty.
+   Examples: `.raw/foo.pdf` → `foo`; `.raw/sub/deep/Bar.PDF` → `bar` (extension match is
+   case-insensitive); `.raw/a.b.pdf` → `a.b` (only the final ext is stripped); `.raw/my source.txt`
+   → `my source`. A `.raw` file whose extension is **not** in the glob (e.g. `.raw/foo.png`)
+   contributes nothing → `[[foo]]` stays dead (documented known limitation, not a bug).
 5. `valid.txt = sort -u basenames paths raw`.
 6. `dead.txt = comm -23 links.txt valid.txt` → `wc -l`.
 
 This means: a wikilink target is "dead" iff its lowercased, alias/anchor-stripped, `.md`-stripped
-form is NOT in {any page basename} ∪ {any wiki-relative path} ∪ {any `.raw` stem}. Case-insensitive.
-The port must reproduce both the link extraction AND the three-way valid-set union, including the
-`.raw` multi-extension handling and the case folding.
+form is NOT in {any page basename} ∪ {any wiki-relative path} ∪ {any `.raw` **basename stem**}.
+Case-insensitive. The port must reproduce the link extraction, the basename/path unions, and the
+corrected `.raw` basename-stem union (final-extension-only strip, case-insensitive glob match).
+
+> **DIVERGENCE — `run-lint.py` fixes the `.raw` union forward; `run-lint.sh` keeps the legacy bug.**
+> The legacy shell raw pipeline is
+> `find "$VAULT_ROOT/.raw" … \( -name '*.md' … -o -name '*.pdf' \) | sed 's|\.md$||' | tr A-Z a-z`.
+> `find` emits **full paths** and `sed` strips only a trailing `.md`, so a `.raw/foo.pdf` source
+> enters the valid set as the **full lowercased path with its `.pdf` suffix** — which a bare
+> `[[foo]]` can never match. Under the legacy `.sh`, every bare wikilink to a non-`.md` raw source is
+> therefore **falsely flagged DEAD**. `run-lint.py` is fixed forward to the basename-stem semantics
+> above; `run-lint.sh` retains the bug until the shim swap (do not touch `.sh`). Consequently
+> `run-lint.py` **intentionally diverges** from `run-lint.sh` for this one case, and any future
+> parity golden-diff (E3) **must exclude the `.raw`-union scenario** (or normalize it away).
+> Basename-only is deliberate: two raw files sharing a stem in different dirs collapse to one target
+> (and could mask a genuine typo) — accepted trade-off; subdir disambiguation is out of scope.
 
 ### A.6 Report-file behavior
 
@@ -359,8 +377,37 @@ Run `run-lint.py --quiet` with `KM_VAULT_PATH=<vault>` (same seeded vault).
     those (inline-python skips dirs named `_templates` or `meta`).
 67. **`dead_link_targets_respects_raw_and_paths`** — *setup:* vault with `.raw/Some-Source.pdf` and a
     body wikilink `[[Some-Source]]`, plus a nested page `concepts/Nested.md` referenced as
-    `[[concepts/Nested]]`. *expected:* neither counts as dead (validates the `.raw` union and the
-    wiki-relative slash-path union in the `comm -23` set algebra).
+    `[[concepts/Nested]]`. *expected (CORRECTED, `run-lint.py`):* **neither** counts as dead — the
+    `.raw/Some-Source.pdf` source contributes the basename stem `some-source` to the valid set, and
+    the wiki-relative slash path `concepts/nested` is caught by the path union. This is the
+    fix-forward behavior; under the legacy `run-lint.sh` the bare `[[Some-Source]]` would still be
+    DEAD (full-path-with-`.pdf` valid entry), so `run-lint.py` diverges here (see the A.5 divergence
+    box). The earlier characterization that asserted `some-source` IS dead has been **flipped** to
+    assert it is NOT dead.
+
+### Section 11 — NEW: corrected `.raw`-union edge cases (fix-forward, `run-lint.py` only)
+
+White-box cases over `dead_link_targets(wiki_root, vault_root)` (plus one black-box integration via
+`--json` + report), each in a throwaway temp vault. These lock the corrected basename-stem semantics
+of §A.5 step 4. They assert behavior that **diverges from `run-lint.sh`** and must be excluded from
+any parity golden-diff (E3).
+
+- **(a) core** — `.raw/foo.pdf` + `[[foo]]` → NOT dead.
+- **(b) all globbed exts** — each of `.raw/x.md`, `.raw/x.txt`, `.raw/x.json` → `[[x]]` NOT dead.
+- **(c) case-insensitive** — `.raw/Foo.PDF` → `[[foo]]` NOT dead (basename + extension folded).
+- **(d) subdirectory** — `.raw/sub/deep/foo.pdf` → `[[foo]]` NOT dead (basename match; subdir ignored).
+- **(e) final-extension-only** — `.raw/foo.bar.pdf` → `[[foo.bar]]` NOT dead **and** `[[foo]]` STILL dead.
+- **(f) spaces** — `.raw/my source.pdf` → `[[my source]]` NOT dead (independent of the spaced-link check).
+- **(g) glob scope unchanged** — `.raw/foo.png` → `[[foo]]` STILL dead (extension not in the glob).
+- **(h) no `.raw` dir** — no crash; a link to a nonexistent target is still dead.
+- **(i) genuinely-dead regression** — `[[nonexistent]]` with no page and no matching raw → STILL dead.
+- **(j) valid-page regression** — a normal valid wiki-page link stays valid; `spaced_filenames` /
+  `frontmatter_gaps` counts unchanged from a clean base vault.
+- **(k) dedup/collision** — `.raw/a.pdf` + `.raw/a.md` collapse to a single target; `[[a]]` valid
+  (accepted typo-masking trade-off, basename-only).
+- **(l) integration** — on a vault mixing a valid page link, a raw-backed link, and a genuinely dead
+  link, the `--json` `dead_link_targets` count and the Markdown report both reflect the corrected
+  set (only the genuinely dead target is listed).
 
 ---
 
@@ -384,7 +431,9 @@ The 23 bash cases assert presence and `>=` thresholds only. Concrete gaps:
 - **C.6 `totals` split rule untested.** The terminology errors/warns split into totals
   (lines 343–345) and the dag/program count-into-flipped-severity rule (346–348) are untested. → B40, B41.
 - **C.7 Read-only / exit-code-decoupled-from-findings never asserted.** → B61–B63.
-- **C.8 No empty-vault, no `_templates`/`meta` exclusion, no `.raw` union tests.** → B64–B67.
+- **C.8 No empty-vault, no `_templates`/`meta` exclusion, no `.raw` union tests.** → B64–B67,
+  plus Section 11 (a)–(l) for the **corrected** `.raw` basename-stem union (fix-forward in
+  `run-lint.py`; diverges from `run-lint.sh`).
 - **C.9 No item-cap (30) test.** → B60.
 - **C.10 White-box hooks absent.** Because the source is bash, there are no unit tests of individual
   helpers. The port should expose pure functions (e.g. `build_summary(...)`, `dead_link_targets(...)`,
@@ -478,8 +527,13 @@ The port `scripts/run-lint.py` is accepted iff:
 - **E1.** All 23 baseline cases (B1–B23) pass via `python3 tests/test_run_lint.py`.
 - **E2.** All new cases B24–B67 pass (or are explicitly `skip`-marked with rationale, e.g. B46).
 - **E3.** For a corpus of ≥3 real/synthetic vaults, `run-lint.py --json` output is **byte-identical**
-  to `run-lint.sh --json` after normalizing only `date`/absolute-path fields (a golden-file diff test
-  is recommended as an additional B-case once both implementations coexist during migration).
+  to `run-lint.sh --json` after normalizing only `date`/absolute-path fields **and excluding the
+  `.raw`-union scenario** (a golden-file diff test is recommended as an additional B-case once both
+  implementations coexist during migration). NOTE: `run-lint.py` intentionally diverges from
+  `run-lint.sh` on the `dead_link_targets` `.raw` union (fix-forward — see the §A.5 divergence box),
+  so corpus vaults that contain a `.raw/` dir with non-`.md` sources referenced by bare wikilinks
+  will legitimately differ; the golden diff must omit those `dead_link_targets` entries (or use
+  vaults without such links) until `run-lint.sh` is retired at the shim swap.
 - **E4.** Exit codes match the table in A.7 for every flag/error path.
 - **E5.** Read-only: no wiki content file mutated; only `meta/lint-report-<DATE>.md` written
   (and only in non-`--json` modes).
@@ -487,5 +541,6 @@ The port `scripts/run-lint.py` is accepted iff:
   (env-over-arg precedence).
 
 **Migration test strategy:** during Phase 2, keep `run-lint.sh` in place and add a golden-diff
-case that runs BOTH and asserts equality (E3). Remove the `.sh` only after the golden diff is green
-across the vault corpus and B1–B67 pass.
+case that runs BOTH and asserts equality (E3), **excluding the `.raw`-union scenario** where
+`run-lint.py` deliberately fixes forward (§A.5 divergence box; Section 11). Remove the `.sh` only
+after the golden diff is green across the vault corpus and B1–B67 + Section 11 pass.

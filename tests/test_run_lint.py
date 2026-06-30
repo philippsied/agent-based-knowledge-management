@@ -894,18 +894,20 @@ def test_section10_meta_and_templates_excluded_from_spaced_links():
 
 
 def test_section10_dead_link_respects_raw_and_paths():
-    # B67 — validates the wiki-relative slash-path union AND characterizes the
-    # actual .raw-union behavior of run-lint.sh (the authoritative reference).
+    # B67 — validates the wiki-relative slash-path union AND the CORRECTED
+    # .raw-union behavior of run-lint.py.
     #
-    # PARITY NOTE (spec-vs-sh discrepancy): spec B67 expects a .raw/<x>.pdf to
-    # make `[[<x>]]` NOT dead. But the .sh raw pipeline
+    # FIX-FORWARD NOTE (run-lint.py diverges from run-lint.sh here): the legacy
+    # .sh raw pipeline
     #   find "$VAULT/.raw" ... | sed 's|\.md$||' | tr A-Z a-z
-    # operates on find's FULL paths and strips only a trailing `.md`. A .pdf
-    # raw file therefore enters the valid set as the full lowercased path WITH
-    # its `.pdf` suffix — which a bare link target like `some-source` never
-    # matches. So `[[Some-Source]]` IS reported dead by run-lint.sh. The port
-    # reproduces that exactly (verified: .sh and .py both report count incl.
-    # 'some-source'). We assert the faithful behavior, not the spec's intent.
+    # operated on find's FULL paths and stripped only a trailing `.md`, so a
+    # `.raw/<x>.pdf` entered the valid set as a full lowercased path WITH its
+    # `.pdf` suffix and a bare `[[<x>]]` could never match it (always DEAD).
+    # run-lint.py is fixed forward: each in-glob `.raw` file contributes its
+    # BASENAME with the final extension stripped, lowercased. So
+    # `.raw/Some-Source.pdf` -> valid target `some-source`, and
+    # `[[Some-Source]]` is NOT dead. (run-lint.sh keeps the legacy bug until the
+    # shim swap; any future parity golden-diff must exclude this raw scenario.)
     v = new_tmp()
     try:
         _seed_base_vault(v)
@@ -920,10 +922,224 @@ def test_section10_dead_link_respects_raw_and_paths():
         # Path union DOES catch the nested wiki-relative slash path.
         assert_true("B67 nested path not dead (path union)",
                     "concepts/nested" not in dead["items"])
-        # .raw/.pdf keeps its extension as a full path -> bare target stays dead
-        # (faithful to run-lint.sh; spec's not-dead expectation does not hold).
-        assert_true("B67 raw .pdf leaves bare target dead (matches .sh)",
-                    "some-source" in dead["items"])
+        # CORRECTED: .raw/.pdf contributes its basename stem -> bare target NOT dead.
+        assert_true("B67 raw .pdf basename makes bare target not dead",
+                    "some-source" not in dead["items"])
+    finally:
+        shutil.rmtree(v, ignore_errors=True)
+
+
+# ===========================================================================
+# Section 11 — corrected .raw-union behavior (fix-forward in run-lint.py)
+# ===========================================================================
+#
+# LOCKED SEMANTICS: each in-glob (*.md/*.json/*.txt/*.pdf) file under <vault>/.raw
+# contributes exactly ONE valid dead-link target = its BASENAME with the FINAL
+# extension stripped, ASCII-lowercased. Basename only (subdir disambiguation is
+# out of scope; same-stem files in different dirs collapse to one target). Files
+# whose extension is NOT in the glob contribute nothing (documented limitation).
+# run-lint.py DIVERGES from run-lint.sh for this one case (see B67).
+
+
+def _raw_vault(raw_files, link_target, *, extra_pages=None):
+    """Build a throwaway vault with a base index.md whose body links to
+    `[[link_target]]`, plus the given .raw files. Returns the vault path; caller
+    cleans up. `raw_files`: list of paths relative to <vault>/.raw.
+    `extra_pages`: optional {wiki-relative path: body-after-frontmatter}."""
+    v = new_tmp("raw-union.")
+    _seed_base_vault(v)
+    (v / "wiki" / "index.md").write_text(
+        _fm("Index") + f"[[{link_target}]]\n"
+    )
+    for rel in raw_files:
+        p = v / ".raw" / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("")
+    if extra_pages:
+        for rel, body in extra_pages.items():
+            p = v / "wiki" / rel
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(_fm(Path(rel).stem, "concept") + body)
+    return v
+
+
+def _is_dead(vault: Path, target_lower: str) -> bool:
+    dead = rl.dead_link_targets(vault / "wiki", vault)
+    return target_lower in dead
+
+
+def test_section11_raw_core_pdf():
+    # (a) .raw/foo.pdf + [[foo]] -> NOT dead (core)
+    v = _raw_vault(["foo.pdf"], "foo")
+    try:
+        assert_true("S11a raw pdf core not dead", not _is_dead(v, "foo"))
+    finally:
+        shutil.rmtree(v, ignore_errors=True)
+
+
+def test_section11_raw_all_globbed_exts():
+    # (b) each of .raw/x.md, .raw/x.txt, .raw/x.json -> [[x]] NOT dead
+    for ext in ("md", "txt", "json"):
+        v = _raw_vault([f"x.{ext}"], "x")
+        try:
+            assert_true(f"S11b raw .{ext} not dead", not _is_dead(v, "x"))
+        finally:
+            shutil.rmtree(v, ignore_errors=True)
+
+
+def test_section11_raw_case_insensitive():
+    # (c) .raw/Foo.PDF -> [[foo]] NOT dead (ASCII-lowercased basename + ext)
+    v = _raw_vault(["Foo.PDF"], "foo")
+    try:
+        assert_true("S11c raw Foo.PDF case-insensitive not dead",
+                    not _is_dead(v, "foo"))
+    finally:
+        shutil.rmtree(v, ignore_errors=True)
+
+
+def test_section11_raw_subdirectory_basename():
+    # (d) .raw/sub/deep/foo.pdf -> [[foo]] NOT dead (basename match)
+    v = _raw_vault(["sub/deep/foo.pdf"], "foo")
+    try:
+        assert_true("S11d raw nested basename not dead", not _is_dead(v, "foo"))
+    finally:
+        shutil.rmtree(v, ignore_errors=True)
+
+
+def test_section11_raw_final_extension_only():
+    # (e) .raw/foo.bar.pdf -> [[foo.bar]] NOT dead AND [[foo]] STILL dead.
+    # Link BOTH targets so the dead set can actually contain "foo".
+    v = new_tmp("raw-union-e.")
+    try:
+        _seed_base_vault(v)
+        (v / ".raw").mkdir(parents=True)
+        (v / ".raw" / "foo.bar.pdf").write_text("")
+        (v / "wiki" / "index.md").write_text(
+            _fm("Index") + "[[foo.bar]] [[foo]]\n"
+        )
+        dead = rl.dead_link_targets(v / "wiki", v)
+        # only the final ext is stripped: raw target is "foo.bar", not "foo".
+        assert_true("S11e raw foo.bar.pdf -> [[foo.bar]] not dead",
+                    "foo.bar" not in dead)
+        assert_true("S11e raw foo.bar.pdf -> [[foo]] still dead",
+                    "foo" in dead)
+    finally:
+        shutil.rmtree(v, ignore_errors=True)
+
+
+def test_section11_raw_spaces_in_stem():
+    # (f) .raw/my source.pdf -> [[my source]] NOT dead (independent of the
+    # spaced-wikilink check, which is a different check entirely).
+    v = _raw_vault(["my source.pdf"], "my source")
+    try:
+        assert_true("S11f raw spaced stem not dead",
+                    not _is_dead(v, "my source"))
+    finally:
+        shutil.rmtree(v, ignore_errors=True)
+
+
+def test_section11_raw_glob_scope_unchanged():
+    # (g) .raw/foo.png -> [[foo]] STILL dead (extension not in the glob)
+    v = _raw_vault(["foo.png"], "foo")
+    try:
+        assert_true("S11g raw .png out-of-glob stays dead", _is_dead(v, "foo"))
+    finally:
+        shutil.rmtree(v, ignore_errors=True)
+
+
+def test_section11_no_raw_dir_no_crash():
+    # (h) no .raw dir -> no crash, link to nonexistent target still dead
+    v = new_tmp("raw-union-none.")
+    try:
+        _seed_base_vault(v)
+        (v / "wiki" / "index.md").write_text(_fm("Index") + "[[nope]]\n")
+        assert_true("S11h no .raw dir: nonexistent target dead",
+                    _is_dead(v, "nope"))
+    finally:
+        shutil.rmtree(v, ignore_errors=True)
+
+
+def test_section11_genuinely_dead_regression():
+    # (i) genuinely dead [[nonexistent]] (no page, no raw) -> STILL dead,
+    # even with an unrelated raw file present.
+    v = _raw_vault(["unrelated.pdf"], "nonexistent")
+    try:
+        assert_true("S11i genuinely dead stays dead", _is_dead(v, "nonexistent"))
+    finally:
+        shutil.rmtree(v, ignore_errors=True)
+
+
+def test_section11_valid_wiki_page_link_stays_valid():
+    # (j) a normal valid wiki-page link stays valid; other checks unaffected.
+    v = new_tmp("raw-union-page.")
+    try:
+        _seed_base_vault(v)
+        (v / ".raw").mkdir(parents=True)
+        (v / ".raw" / "src.pdf").write_text("")
+        (v / "wiki" / "concepts").mkdir(parents=True)
+        (v / "wiki" / "concepts" / "Real-Page.md").write_text(
+            _fm("Real Page", "concept") + "Body.\n"
+        )
+        (v / "wiki" / "index.md").write_text(
+            _fm("Index") + "[[Real-Page]] [[src]]\n"
+        )
+        summary = json_for(v)
+        dead = check_by_name(summary, "dead_link_targets")
+        assert_true("S11j real page link valid",
+                    "real-page" not in dead["items"])
+        assert_true("S11j raw src link valid", "src" not in dead["items"])
+        assert_eq("S11j no dead links at all", 0, dead["count"])
+        # other checks' counts unchanged from a clean base vault
+        assert_eq("S11j spaced_filenames still 0", 0,
+                  check_by_name(summary, "spaced_filenames")["count"])
+        assert_eq("S11j frontmatter_gaps still 0", 0,
+                  check_by_name(summary, "frontmatter_gaps")["count"])
+    finally:
+        shutil.rmtree(v, ignore_errors=True)
+
+
+def test_section11_dedup_collision():
+    # (k) .raw/a.pdf + .raw/a.md collapse to a single target; [[a]] valid.
+    # Accepted trade-off: two different sources sharing a stem mask each other
+    # (and could mask a genuine typo), which the locked basename-only semantics
+    # deliberately permit (subdir disambiguation is out of scope).
+    v = _raw_vault(["a.pdf", "a.md"], "a")
+    try:
+        dead = rl.dead_link_targets(v / "wiki", v)
+        assert_true("S11k collision: [[a]] valid", "a" not in dead)
+    finally:
+        shutil.rmtree(v, ignore_errors=True)
+
+
+def test_section11_integration_mixed_vault():
+    # (l) integration: --json DEAD count and the Markdown report reflect the
+    # corrected set on a vault mixing valid-page / raw / genuinely-dead links.
+    v = new_tmp("raw-union-int.")
+    try:
+        _seed_base_vault(v)
+        (v / ".raw").mkdir(parents=True)
+        (v / ".raw" / "Report-2025.pdf").write_text("")  # -> report-2025
+        (v / "wiki" / "concepts").mkdir(parents=True)
+        (v / "wiki" / "concepts" / "Good.md").write_text(
+            _fm("Good", "concept") + "Body.\n"
+        )
+        (v / "wiki" / "index.md").write_text(
+            _fm("Index")
+            + "[[Good]] [[Report-2025]] [[ghost]]\n"  # valid, raw, dead
+        )
+        # JSON view: exactly one dead target ('ghost')
+        summary = json_for(v)
+        dead = check_by_name(summary, "dead_link_targets")
+        assert_eq("S11l json dead count == 1", 1, dead["count"])
+        assert_eq("S11l json dead set == {ghost}", ["ghost"], dead["items"])
+        # Markdown report reflects the same corrected set
+        run_lint(v, "--quiet")
+        date = datetime.date.today().isoformat()
+        text = (v / "wiki" / "meta" / f"lint-report-{date}.md").read_text()
+        assert_true("S11l report lists ghost as dead", "- ghost\n" in text)
+        assert_true("S11l report omits report-2025 from dead",
+                    "- report-2025\n" not in text)
+        assert_true("S11l report omits good from dead", "- good\n" not in text)
     finally:
         shutil.rmtree(v, ignore_errors=True)
 
@@ -1097,6 +1313,19 @@ if __name__ == "__main__":
         test_section10_templates_excluded_from_spaced_filenames()
         test_section10_meta_and_templates_excluded_from_spaced_links()
         test_section10_dead_link_respects_raw_and_paths()
+        # Section 11 — corrected .raw-union (fix-forward)
+        test_section11_raw_core_pdf()
+        test_section11_raw_all_globbed_exts()
+        test_section11_raw_case_insensitive()
+        test_section11_raw_subdirectory_basename()
+        test_section11_raw_final_extension_only()
+        test_section11_raw_spaces_in_stem()
+        test_section11_raw_glob_scope_unchanged()
+        test_section11_no_raw_dir_no_crash()
+        test_section11_genuinely_dead_regression()
+        test_section11_valid_wiki_page_link_stays_valid()
+        test_section11_dedup_collision()
+        test_section11_integration_mixed_vault()
         # White-box
         test_whitebox_ascii_lower()
         test_whitebox_build_summary_severity()

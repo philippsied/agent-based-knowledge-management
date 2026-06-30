@@ -187,9 +187,10 @@ def dead_link_targets(wiki_root: Path, vault_root: Path) -> list[str]:
     2. valid set = union of:
          - basenames: every *.md path's basename, .md stripped, ASCII-lower
          - paths:     every wiki-relative slash path, .md stripped, ASCII-lower
-         - raw:       if <vault>/.raw exists, basenames of *.md/*.json/*.txt/
-                      *.pdf, .md stripped (others keep their extension),
-                      ASCII-lower
+         - raw:       if <vault>/.raw exists, each *.md/*.json/*.txt/*.pdf
+                      file's BASENAME with the FINAL extension stripped,
+                      ASCII-lower (fix-forward; diverges from run-lint.sh —
+                      see the raw.txt block below)
     3. dead = links - valid  (comm -23), returned sorted.
 
     The grep/sed pipeline lowercases with `tr` (ASCII only) — see ascii_lower.
@@ -229,28 +230,34 @@ def dead_link_targets(wiki_root: Path, vault_root: Path) -> list[str]:
         paths.add(ascii_lower(rel))
 
     # --- raw.txt ---
-    # The shell pipeline is:
+    # FIX-FORWARD (run-lint.py intentionally DIVERGES from run-lint.sh here):
+    # the legacy shell pipeline
     #   find "$VAULT_ROOT/.raw" -type f \( -name '*.md' -o -name '*.json'
     #     -o -name '*.txt' -o -name '*.pdf' \) | sed 's|\.md$||' | tr A-Z a-z
-    # find prints the FULL path; `sed` strips only a trailing `.md` from that
-    # full path (NOT a basename, and NOT other extensions). So a .pdf/.json/.txt
-    # raw file keeps its extension, and a .md raw file keeps its directory
-    # prefix. The valid-set entry is therefore the full lowercased path — which
-    # bare link targets effectively never match. Reproduce that EXACTLY (using
-    # the absolute path, the same string `find "$VAULT_ROOT/.raw"` would emit).
+    # kept find's FULL path and stripped only a trailing `.md`, so a bare
+    # wikilink could never match a `.raw/foo.pdf` source (always falsely DEAD).
+    # The corrected, locked semantics: each in-glob raw file contributes exactly
+    # ONE valid target = its BASENAME with the FINAL extension stripped,
+    # ASCII-lowercased. Basename only (same-stem files in different dirs collapse
+    # to one target — acceptable; subdir disambiguation is out of scope). A raw
+    # file whose extension is not in the glob (e.g. .png) contributes nothing.
+    # run-lint.sh retains the legacy bug until the shim swap, so any parity
+    # golden-diff must exclude this raw-union scenario.
     raw: set[str] = set()
     raw_dir = vault_root / ".raw"
     if raw_dir.is_dir():
         for p in raw_dir.rglob("*"):
             if not p.is_file():
                 continue
-            # `find -name` matches on the basename's glob; restrict to the four
-            # extensions. p.suffix is case-sensitive like find's glob on a
-            # case-sensitive FS; the shell uses lowercase patterns only.
-            if p.suffix not in (".md", ".json", ".txt", ".pdf"):
+            # Restrict to the four globbed extensions, matched
+            # case-INSENSITIVELY (locked semantics: `Bar.PDF` -> `bar`). This is
+            # part of the fix-forward; the legacy .sh `find -name '*.pdf'` glob
+            # was case-sensitive and would have skipped `Foo.PDF`.
+            if p.suffix.lower() not in (".md", ".json", ".txt", ".pdf"):
                 continue
-            full = md_suffix_re.sub("", str(p))
-            raw.add(ascii_lower(full))
+            # Basename with the FINAL extension stripped (p.stem), lowercased.
+            # p.stem strips exactly one (the last) suffix: 'a.b.pdf' -> 'a.b'.
+            raw.add(ascii_lower(p.stem))
 
     valid = basenames | paths | raw
     dead = sorted(links - valid)
