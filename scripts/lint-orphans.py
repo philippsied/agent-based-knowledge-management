@@ -95,6 +95,12 @@ def find_orphans(wiki_root: Path) -> list[str]:
     return orphans
 
 
+def collect(wiki_root: Path) -> list[str]:
+    """Importable entrypoint for run-lint.py. Returns the same orphan list the
+    plain CLI prints (one path per line), without going through print()."""
+    return find_orphans(wiki_root)
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("root", nargs="?", default=None,

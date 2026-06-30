@@ -27,19 +27,21 @@ Severity defaults (hardcoded for PR1; PR1.5+ may make this configurable):
   info   title_overlap
 
 This is a behavioral port of scripts/run-lint.sh. The sub-script checks
-(orphans, terminology, title-overlap, dag, programs) are invoked as the same
-subprocesses the shell script calls, so their results stay byte-identical. The
-inline shell/awk/grep/sed checks (spaced filenames, spaced wikilinks, dead-link
-targets, frontmatter gaps) are reproduced natively in Python.
+(orphans, terminology, title-overlap, dag, programs) are now invoked
+IN-PROCESS via each lint-*.py's importable `collect*` entrypoint (formerly
+sys.executable subprocesses), so their results stay byte-identical with zero
+subprocess startup. The inline shell/awk/grep/sed checks (spaced filenames,
+spaced wikilinks, dead-link targets, frontmatter gaps) are reproduced natively
+in Python.
 """
 
 from __future__ import annotations
 
 import datetime
+import importlib.util
 import json
 import os
 import re
-import subprocess
 import sys
 import tempfile
 import shutil
@@ -50,6 +52,29 @@ REPO_ROOT = SCRIPT_DIR.parent
 
 sys.path.insert(0, str(REPO_ROOT / "lib"))
 from vault_root import resolve_vault_root  # noqa: E402
+
+
+def _load_lint_module(stem: str):
+    """Import a hyphenated lint-*.py as a module (filenames are not importable
+    identifiers, so go through importlib like tests/test_run_lint.py does)."""
+    path = SCRIPT_DIR / f"{stem}.py"
+    spec = importlib.util.spec_from_file_location(stem.replace("-", "_"), path)
+    module = importlib.util.module_from_spec(spec)
+    # Register before exec so @dataclass (lint-terminology) can resolve
+    # sys.modules[cls.__module__] during class creation (Python 3.12+).
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+# The five aggregated lint checks, imported once at module load. Each exposes a
+# `collect*` entrypoint returning the same structured data its CLI --json/stdout
+# yielded. lint-rename.py is NOT aggregated (standalone remediation tool).
+_lint_orphans = _load_lint_module("lint-orphans")
+_lint_terminology = _load_lint_module("lint-terminology")
+_lint_title_overlap = _load_lint_module("lint-title-overlap")
+_lint_deps = _load_lint_module("lint-deps")
+_lint_programs = _load_lint_module("lint-programs")
 
 EXIT_USAGE = 2
 
@@ -264,47 +289,38 @@ def dead_link_targets(wiki_root: Path, vault_root: Path) -> list[str]:
     return dead
 
 
-# --- sub-script invocation (faithful subprocess calls) ---------------------
+# --- sub-script invocation (in-process imports) ----------------------------
+#
+# Each wrapper calls the corresponding lint-*.py `collect*` entrypoint directly
+# (no subprocess). The gating predicates and defensive zero-defaults below
+# REPRODUCE the old subprocess behaviour exactly: the same file-presence /
+# exec-bit gates short-circuit to zero, and any in-process exception is caught
+# and defaulted (parity with the shell's `|| true` / `2>/dev/null` tolerance,
+# which swallowed sub-script failures). Output stays byte-identical.
 
 
-def _run_capture(args: list[str], vault_root: Path) -> tuple[int, str]:
-    """Run a sub-script with KM_VAULT_PATH set, capturing stdout. stderr is
-    discarded (the shell redirects 2>/dev/null on these). Never raises on a
-    non-zero exit (the shell tolerates them with || true / : )."""
-    env = dict(os.environ)
-    env["KM_VAULT_PATH"] = str(vault_root)
+def run_orphans(wiki_root: Path) -> str:
+    """In-process equivalent of `python3 lint-orphans.py` (|| true). Returns
+    the plain stdout the CLI printed: one orphan path per line, trailing
+    newline included so splitlines() yields the same record count."""
     try:
-        proc = subprocess.run(
-            args, capture_output=True, text=True, env=env,
-        )
-    except OSError:
-        return (127, "")
-    return (proc.returncode, proc.stdout)
+        items = _lint_orphans.collect(wiki_root)
+    except Exception:
+        return ""
+    if not items:
+        return ""
+    return "\n".join(items) + "\n"
 
 
-def run_orphans(vault_root: Path) -> str:
-    """KM_VAULT_PATH=<vault> python3 lint-orphans.py  (|| true). Plain stdout,
-    one path per line."""
-    _rc, out = _run_capture(
-        [sys.executable, str(SCRIPT_DIR / "lint-orphans.py")], vault_root
-    )
-    return out
-
-
-def run_terminology(vault_root: Path) -> tuple[int, int]:
+def run_terminology(wiki_root: Path) -> tuple[int, int]:
     """Gated on the executable bit of lint-terminology.py ([ -x ]). Returns
     (TERM_ERR, TERM_WARN), counting ERROR/WARN findings in the --json list.
     Any failure defaults to (0, 0)."""
     script = SCRIPT_DIR / "lint-terminology.py"
     if not (script.is_file() and os.access(script, os.X_OK)):
         return (0, 0)
-    _rc, out = _run_capture(
-        [sys.executable, str(script), "--json"], vault_root
-    )
-    if not out.strip():
-        return (0, 0)
     try:
-        data = json.loads(out)
+        data = _lint_terminology.collect_findings(wiki_root)
     except Exception:
         return (0, 0)
     if not isinstance(data, list):
@@ -318,14 +334,17 @@ def run_terminology(vault_root: Path) -> tuple[int, int]:
     return (err, warn)
 
 
-def run_title_overlap(vault_root: Path) -> tuple[int, str]:
+def run_title_overlap(wiki_root: Path) -> tuple[int, str]:
     """Gated on the executable bit of lint-title-overlap.py ([ -x ]). Returns
     (count, raw_stdout). count = number of lines beginning with a digit
     (awk '/^[0-9]/{n++}'). raw_stdout feeds head_lines for the items list."""
     script = SCRIPT_DIR / "lint-title-overlap.py"
     if not (script.is_file() and os.access(script, os.X_OK)):
         return (0, "")
-    _rc, out = _run_capture([sys.executable, str(script)], vault_root)
+    try:
+        out = _lint_title_overlap.collect_lines(wiki_root)
+    except Exception:
+        return (0, "")
     count = 0
     for line in out.splitlines():
         if line[:1].isdigit():
@@ -345,14 +364,8 @@ def run_dag(wiki_root: Path, vault_root: Path) -> dict[str, int]:
     script = SCRIPT_DIR / "lint-deps.py"
     if not (queue.is_file() and script.is_file()):
         return dict(zero)
-    _rc, out = _run_capture(
-        [sys.executable, str(script), "--vault", str(vault_root), "--json"],
-        vault_root,
-    )
-    if not out.strip():
-        return dict(zero)
     try:
-        d = json.loads(out)
+        d = _lint_deps.collect(vault_root)
     except Exception:
         return dict(zero)
     if not isinstance(d, dict):
@@ -376,14 +389,8 @@ def run_programs(wiki_root: Path, vault_root: Path) -> dict[str, int]:
     script = SCRIPT_DIR / "lint-programs.py"
     if not (queue.is_file() and decision.is_file() and script.is_file()):
         return dict(zero)
-    _rc, out = _run_capture(
-        [sys.executable, str(script), "--vault", str(vault_root), "--json"],
-        vault_root,
-    )
-    if not out.strip():
-        return dict(zero)
     try:
-        d = json.loads(out)
+        d = _lint_programs.collect(vault_root)
     except Exception:
         return dict(zero)
     if not isinstance(d, dict):
@@ -619,14 +626,14 @@ def main(argv: list[str]) -> int:
         dead_items = dead_link_targets(wiki_root, vault_root)
         fm_gaps_items = find_frontmatter_gaps(wiki_root)
 
-        # --- sub-script checks ---
-        orphans_out = run_orphans(vault_root)
+        # --- sub-script checks (now in-process imports) ---
+        orphans_out = run_orphans(wiki_root)
         orphans_items = orphans_out.splitlines() if orphans_out else []
         # The shell counts orphans via `wc -l`; reproduce record semantics.
         # splitlines() drops a trailing newline so len() == record count.
 
-        term_err, term_warn = run_terminology(vault_root)
-        title_count, title_out = run_title_overlap(vault_root)
+        term_err, term_warn = run_terminology(wiki_root)
+        title_count, title_out = run_title_overlap(wiki_root)
         title_items = title_out.splitlines() if title_out else []
 
         dag = run_dag(wiki_root, vault_root)

@@ -105,6 +105,60 @@ def split_program_cell(cell: str) -> list[str]:
     return [tok for tok in cell.split() if tok]
 
 
+def analyze(queue_path: Path, decision_path: Path, programs_dir: Path,
+            queue_rows: list[dict], seed_set: set[str]) -> dict:
+    """Run the program-code checks. Returns the exact dict the CLI emits under
+    --json (the canonical structured result)."""
+    # 1. Whitelist check.
+    unknown: list[tuple[str, str]] = []  # (task_id, code)
+    triage: list[str] = []  # task IDs with program = '?'
+    used_codes: set[str] = set()
+    for row in queue_rows:
+        tokens = split_program_cell(row["program_cell"])
+        if not tokens:
+            unknown.append((row["id"], "<empty>"))
+            continue
+        if tokens == ["?"]:
+            triage.append(row["id"])
+            continue
+        for tok in tokens:
+            if tok not in seed_set:
+                unknown.append((row["id"], tok))
+            else:
+                used_codes.add(tok)
+
+    # 2. Home-page existence.
+    missing_pages: list[str] = []
+    for code in sorted(seed_set):
+        page = programs_dir / f"{code}.md"
+        if not page.exists():
+            missing_pages.append(code)
+
+    return {
+        "queue_file": str(queue_path),
+        "decision_file": str(decision_path),
+        "seed_codes": sorted(seed_set),
+        "tasks_parsed": len(queue_rows),
+        "unknown_codes": [{"task": t, "code": c} for (t, c) in unknown],
+        "triage_tasks": triage,
+        "missing_home_pages": missing_pages,
+        "codes_in_use": sorted(used_codes),
+        "codes_unused": sorted(seed_set - used_codes),
+    }
+
+
+def collect(vault_root: Path) -> dict:
+    """Importable entrypoint for run-lint.py. Returns the same dict the CLI
+    emits under --json, without print(). Assumes the queue + decision files
+    exist (run-lint.py gates on their presence before calling)."""
+    queue_path = vault_root / "wiki" / "meta" / "research-queue.md"
+    decision_path = vault_root / "wiki" / "decisions" / "Research-Program-Codes.md"
+    programs_dir = vault_root / "wiki" / "research" / "programs"
+    queue_rows = parse_queue_programs(queue_path.read_text(encoding="utf-8"))
+    seed_set = set(parse_seed_codes(decision_path.read_text(encoding="utf-8")))
+    return analyze(queue_path, decision_path, programs_dir, queue_rows, seed_set)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--vault", help="Vault root override (else KM_VAULT_PATH or CWD)")
@@ -133,46 +187,16 @@ def main() -> int:
         )
         return 1
 
-    # 1. Whitelist check.
-    unknown: list[tuple[str, str]] = []  # (task_id, code)
-    triage: list[str] = []  # task IDs with program = '?'
-    used_codes: set[str] = set()
-    for row in queue_rows:
-        tokens = split_program_cell(row["program_cell"])
-        if not tokens:
-            unknown.append((row["id"], "<empty>"))
-            continue
-        if tokens == ["?"]:
-            triage.append(row["id"])
-            continue
-        for tok in tokens:
-            if tok not in seed_set:
-                unknown.append((row["id"], tok))
-            else:
-                used_codes.add(tok)
-
-    # 2. Home-page existence.
-    missing_pages: list[str] = []
-    for code in sorted(seed_set):
-        page = programs_dir / f"{code}.md"
-        if not page.exists():
-            missing_pages.append(code)
+    result = analyze(queue_path, decision_path, programs_dir, queue_rows, seed_set)
+    unknown = [(u["task"], u["code"]) for u in result["unknown_codes"]]
+    triage = result["triage_tasks"]
+    missing_pages = result["missing_home_pages"]
+    used_codes = set(result["codes_in_use"])
 
     errors = bool(unknown or missing_pages)
 
     if args.json:
-        out = {
-            "queue_file": str(queue_path),
-            "decision_file": str(decision_path),
-            "seed_codes": sorted(seed_set),
-            "tasks_parsed": len(queue_rows),
-            "unknown_codes": [{"task": t, "code": c} for (t, c) in unknown],
-            "triage_tasks": triage,
-            "missing_home_pages": missing_pages,
-            "codes_in_use": sorted(used_codes),
-            "codes_unused": sorted(seed_set - used_codes),
-        }
-        print(json.dumps(out, indent=2))
+        print(json.dumps(result, indent=2))
         return 1 if errors else 0
 
     # Human text output.
