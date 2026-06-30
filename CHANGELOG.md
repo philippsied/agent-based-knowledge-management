@@ -6,7 +6,7 @@ All notable changes to agentic-knowledge-management. Format: [Keep a Changelog](
 
 ### Changed
 
-- **`scripts/run-lint.sh` is now a thin shell shim over `scripts/run-lint.py`.** The canonical wiki-quality lint aggregator was reimplemented in Python (single source of truth; vault root resolves via `lib/vault_root.py`). The shell entrypoint `exec`s the Python port, preserving the documented CLI (`--json` / `--quiet` / `--no-report` / `--help`), the two numeric exit codes (0 read-only/help, 2 usage/missing-wiki; exit never reflects findings), and byte-identical JSON + Markdown report output. Callers are unchanged (`make lint`, CI `bash scripts/run-lint.sh --json`, `bin/release.sh`, `skills/wiki-lint`). Mirrors the `allocate-address.sh → allocate-address.py` wrapper.
+- **Shell→Python migration (in progress).** The `run-lint` aggregator and the DragonScale address allocator are now pure Python (`scripts/run-lint.py`, `scripts/allocate-address.py`), invoked directly with no shell wrapper. `run-lint.py` additionally folds its six `lint-*.py` checks in-process (imported `collect*` entrypoints instead of `sys.executable` subprocesses), so the aggregate `--json` and Markdown report are produced with zero subprocess startup and stay byte-identical to the prior output. Each `lint-*.py` remains runnable standalone via its `__main__`. Vault root resolves via `lib/vault_root.py`. Tracked under `docs/plans/PLAN-sh-to-py-full-migration.md`.
 
 ### Fixed
 
@@ -14,6 +14,7 @@ All notable changes to agentic-knowledge-management. Format: [Keep a Changelog](
 
 ### Removed
 
+- **`scripts/run-lint.sh` and `scripts/allocate-address.sh` removed.** The Python ports are now the direct entrypoints; `Makefile`, CI (`.github/workflows/test.yml`), `bin/release.sh`, `bin/setup-dragonscale.sh`, the `wiki-lint` / `wiki-ingest` skills + agents, and `docs/dragonscale-guide.md` were repointed to `.py`. Feature-detection guards switched from `[ -x …sh ]` to `[ -f …py ]` so a missing port disables the optional path rather than silently passing.
 - **`tests/test_run_lint.sh` retired** in favor of `tests/test_run_lint.py`. The shell test's top-level-key and seeded-finding assertions are a subset of the Python characterization suite (183 checks). `make test-run-lint` and CI now run `python3 tests/test_run_lint.py`.
 
 ## [1.10.1] - 2026-06-21

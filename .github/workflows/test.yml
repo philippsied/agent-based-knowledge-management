@@ -36,7 +36,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y jq
       - name: Run lint
         run: |
-          bash scripts/run-lint.sh --json > /tmp/lint.json
+          python3 scripts/run-lint.py --json > /tmp/lint.json
           jq . /tmp/lint.json
           ERROR_COUNT=$(jq -r '.totals.error // 0' /tmp/lint.json)
           echo "Lint error count: $ERROR_COUNT"

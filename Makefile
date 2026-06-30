@@ -27,7 +27,7 @@ test: test-vault-root test-address test-tiling test-boundary test-terminology te
 	@echo "All tests passed."
 
 lint:
-	@bash scripts/run-lint.sh
+	@python3 scripts/run-lint.py
 
 test-vault-root:
 	@echo "=== test_vault_root.py ==="

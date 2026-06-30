@@ -308,12 +308,12 @@ Do not silently overwrite old claims. Flag and let the user decide.
 
 ## Address Assignment (DragonScale Mechanism 2 MVP)
 
-**Opt-in feature**. DragonScale address assignment runs only if `scripts/allocate-address.sh` is present AND `.vault-meta/` exists. Otherwise, skip this entire section and proceed with ingest normally.
+**Opt-in feature**. DragonScale address assignment runs only if `scripts/allocate-address.py` is present AND `.vault-meta/` exists. Otherwise, skip this entire section and proceed with ingest normally.
 
 **Feature detection (run at start of every ingest)**:
 
 ```bash
-if [ -x ./scripts/allocate-address.sh ] && [ -d ./.vault-meta ]; then
+if [ -f ./scripts/allocate-address.py ] && [ -d ./.vault-meta ]; then
   DRAGONSCALE_ADDRESSES=1
 else
   DRAGONSCALE_ADDRESSES=0
@@ -336,12 +336,12 @@ Format: `c-<6-digit-counter>`. The `c-` prefix stands for "creation-order counte
 
 Rollout baseline: **2026-04-23** (Phase 2 ship date). Pages with `created:` >= this date are post-rollout and MUST have an address (unless excluded below). Pages with `created:` earlier are legacy-exempt until a deliberate backfill pass assigns `l-NNNNNN` addresses.
 
-### Required tool: `scripts/allocate-address.sh`
+### Required tool: `scripts/allocate-address.py`
 
-Address allocation is delegated to an atomic Bash helper. The helper uses `flock` on `.vault-meta/.address.lock` to prevent read-use-increment races and recovers the counter by scanning existing frontmatter if the counter file is missing.
+Address allocation is delegated to an atomic Python helper. The helper uses `fcntl.flock` on `.vault-meta/.address.lock` to prevent read-use-increment races and recovers the counter by scanning existing frontmatter if the counter file is missing.
 
 ```bash
-ADDR=$(./scripts/allocate-address.sh)
+ADDR=$(python3 scripts/allocate-address.py)
 # ADDR is now e.g. "c-000042"; counter is already incremented
 ```
 
@@ -349,13 +349,13 @@ ADDR=$(./scripts/allocate-address.sh)
 
 ### Helper modes
 
-- `./scripts/allocate-address.sh` — atomically reserves and returns the next address.
-- `./scripts/allocate-address.sh --peek` — prints the next value without reserving (safe, read-only).
-- `./scripts/allocate-address.sh --rebuild` — recomputes the counter from the highest observed `c-NNNNNN` in existing frontmatter. Never resets to 1 silently if pages already have addresses. Run this if the counter file is suspected corrupt.
+- `python3 scripts/allocate-address.py` — atomically reserves and returns the next address.
+- `python3 scripts/allocate-address.py --peek` — prints the next value without reserving (safe, read-only).
+- `python3 scripts/allocate-address.py --rebuild` — recomputes the counter from the highest observed `c-NNNNNN` in existing frontmatter. Never resets to 1 silently if pages already have addresses. Run this if the counter file is suspected corrupt.
 
 ### Assignment procedure (per new page)
 
-1. Before writing a new non-meta page, call `./scripts/allocate-address.sh` and capture the output.
+1. Before writing a new non-meta page, call `python3 scripts/allocate-address.py` and capture the output.
 2. Include `address: c-XXXXXX` in the page's frontmatter.
 3. Record the path-to-address mapping in `.raw/.manifest.json` under a new top-level key `address_map` (see schema below).
 

@@ -21,13 +21,13 @@ echo "Setting up DragonScale Memory at: $VAULT"
 cd "$VAULT"
 
 # ── 1. Verify required artifacts that ship with the plugin ───────────────────
-for required in "scripts/allocate-address.sh" "scripts/tiling-check.py" "skills/wiki-fold/SKILL.md"; do
+for required in "scripts/allocate-address.py" "scripts/tiling-check.py" "skills/wiki-fold/SKILL.md"; do
   if [ ! -e "$required" ]; then
     echo "ERR: missing $required. Reinstall the agentic-knowledge-management plugin." >&2
     exit 1
   fi
 done
-chmod +x scripts/allocate-address.sh scripts/tiling-check.py
+chmod +x scripts/allocate-address.py scripts/tiling-check.py
 
 # ── 2. Provision .vault-meta/ ─────────────────────────────────────────────────
 mkdir -p .vault-meta
@@ -99,7 +99,7 @@ fi
 # ── 5. Sanity checks ──────────────────────────────────────────────────────────
 echo ""
 echo "Sanity checks:"
-NEXT=$(./scripts/allocate-address.sh --peek 2>&1 | tail -1)
+NEXT=$(python3 scripts/allocate-address.py --peek 2>&1 | tail -1)
 echo "  next address: c-$(printf '%06d' $NEXT)"
 
 PYTHON=$(command -v python3 || echo "not installed")

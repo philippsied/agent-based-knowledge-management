@@ -19,7 +19,7 @@ The concept page is broader than this guide. This guide is operational. When the
 Version `1.6.0` ships all four DragonScale mechanisms as opt-in features:
 
 - Mechanism 1, Fold Operator: `skills/wiki-fold/`
-- Mechanism 2, Deterministic Page Addresses: `scripts/allocate-address.sh` plus `wiki-ingest` and `wiki-lint` integration
+- Mechanism 2, Deterministic Page Addresses: `scripts/allocate-address.py` plus `wiki-ingest` and `wiki-lint` integration
 - Mechanism 3, Semantic Tiling Lint: `scripts/tiling-check.py` plus `wiki-lint` integration
 - Mechanism 4, Boundary-First Autoresearch: `scripts/boundary-score.py` plus `skills/autoresearch/SKILL.md` Topic Selection logic
 
@@ -52,7 +52,7 @@ If you omit the path, it uses the repo root inferred from `bin/`.
 
 ### Universal prerequisite: flock
 
-Both mechanisms guard their counter/cache with `fcntl.flock` from Python (the POSIX flock(2) syscall), so no util-linux `flock(1)` CLI is required and they work on macOS and Linux alike. Mechanism 2 guards `.vault-meta/.address.lock` in `scripts/allocate-address.py` (invoked via the `scripts/allocate-address.sh` shim); Mechanism 3 guards `.vault-meta/.tiling.lock` around cache I/O.
+Both mechanisms guard their counter/cache with `fcntl.flock` from Python (the POSIX flock(2) syscall), so no util-linux `flock(1)` CLI is required and they work on macOS and Linux alike. Mechanism 2 guards `.vault-meta/.address.lock` in `scripts/allocate-address.py`; Mechanism 3 guards `.vault-meta/.tiling.lock` around cache I/O.
 
 Quick check:
 
@@ -114,7 +114,7 @@ The script is idempotent. It is safe to re-run and it does not overwrite the run
 
 Before provisioning state, it verifies:
 
-- `scripts/allocate-address.sh`
+- `scripts/allocate-address.py`
 - `scripts/tiling-check.py`
 - `skills/wiki-fold/SKILL.md`
 
@@ -122,7 +122,7 @@ If any of those are missing, setup stops and tells you to reinstall the plugin.
 
 What setup does:
 
-- makes `scripts/allocate-address.sh` executable
+- makes `scripts/allocate-address.py` executable
 - makes `scripts/tiling-check.py` executable
 - creates `.vault-meta/` if needed
 - creates address, tiling, and legacy-baseline state files if missing
@@ -173,7 +173,7 @@ The setup script already performs sanity checks, but it is useful to verify a fe
 Check the next address without reserving one:
 
 ```bash
-./scripts/allocate-address.sh --peek
+python3 scripts/allocate-address.py --peek
 ```
 
 Check that runtime state exists:
@@ -279,15 +279,15 @@ The rollout baseline is `2026-04-23`. After DragonScale adoption, post-rollout n
 The helper has three real modes:
 
 ```bash
-./scripts/allocate-address.sh
+python3 scripts/allocate-address.py
 ```
 
 ```bash
-./scripts/allocate-address.sh --peek
+python3 scripts/allocate-address.py --peek
 ```
 
 ```bash
-./scripts/allocate-address.sh --rebuild
+python3 scripts/allocate-address.py --rebuild
 ```
 
 The default mode reserves and prints the next address. `--peek` is read-only. `--rebuild` recomputes the counter from the highest observed `c-NNNNNN`.
@@ -295,24 +295,24 @@ The default mode reserves and prints the next address. `--peek` is read-only. `-
 Example command:
 
 ```bash
-./scripts/allocate-address.sh --peek
+python3 scripts/allocate-address.py --peek
 ```
 
 ### How ingest and lint use it
 
-`wiki-ingest` enables address assignment only when `./scripts/allocate-address.sh` is executable and `./.vault-meta` exists. If both conditions are true, new non-meta pages get `address:` in frontmatter. If not, ingest proceeds without addresses.
+`wiki-ingest` enables address assignment only when `./scripts/allocate-address.py` is present and `./.vault-meta` exists. If both conditions are true, new non-meta pages get `address:` in frontmatter. If not, ingest proceeds without addresses.
 
-`wiki-lint` enables address validation only when `./scripts/allocate-address.sh` is executable and `./.vault-meta/address-counter.txt` exists. If those conditions are true, lint checks address format, uniqueness, counter consistency against `--peek`, missing addresses on post-rollout pages, and `address_map` consistency in `.raw/.manifest.json`.
+`wiki-lint` enables address validation only when `./scripts/allocate-address.py` is present and `./.vault-meta/address-counter.txt` exists. If those conditions are true, lint checks address format, uniqueness, counter consistency against `--peek`, missing addresses on post-rollout pages, and `address_map` consistency in `.raw/.manifest.json`.
 
 The single-writer rule matters here. The allocator uses `flock`, but the ingest skill still says Phase 2 is single-writer only. Do not run parallel ingests from multiple sessions or sub-agents that assign addresses.
 
-One hard rule from the skill docs is worth repeating. Never edit `.vault-meta/address-counter.txt` directly. Only mutate it through `scripts/allocate-address.sh`.
+One hard rule from the skill docs is worth repeating. Never edit `.vault-meta/address-counter.txt` directly. Only mutate it through `scripts/allocate-address.py`.
 
 To disable Mechanism 2 without uninstalling:
 
 1. stop running ingests that depend on address assignment
 2. remove `.vault-meta/` if you want feature detection to turn off
-3. stop using `./scripts/allocate-address.sh`
+3. stop using `python3 scripts/allocate-address.py`
 
 Existing `address:` fields can stay on pages. They become inert metadata if the feature is disabled.
 
@@ -544,7 +544,7 @@ Remember that Mechanism 4 does not need ollama. If you only want boundary-first 
 You do not need to uninstall the repo to turn DragonScale off. Use the smallest rollback that fits what you want:
 
 - Mechanism 1: stop invoking `wiki-fold`. It uses no shared state.
-- Mechanism 2: stop using `./scripts/allocate-address.sh`. Existing `address:` frontmatter fields remain as plain content.
+- Mechanism 2: stop using `python3 scripts/allocate-address.py`. Existing `address:` frontmatter fields remain as plain content.
 - Mechanism 3: stop running `python3 ./scripts/tiling-check.py` and stop invoking the semantic-tiling path in `wiki-lint`. Cache under `.vault-meta/` is inert when not used.
 - Mechanism 4: stop running `python3 ./scripts/boundary-score.py` and avoid the no-topic `/autoresearch` path. The scorer is read-only; disabling is not invoking it.
 

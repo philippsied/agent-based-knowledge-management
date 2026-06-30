@@ -29,7 +29,7 @@ git diff --quiet || { echo "Uncommitted changes — stash or commit first"; exit
 echo "Running tests..."
 make test
 echo "Running lint..."
-bash scripts/run-lint.sh --json | jq -e '.error_count == 0' >/dev/null || { echo "Lint errors present"; exit 4; }
+python3 scripts/run-lint.py --json | jq -e '.error_count == 0' >/dev/null || { echo "Lint errors present"; exit 4; }
 
 # CHANGELOG check
 grep -q "^## \[$VERSION\]" CHANGELOG.md || { echo "Missing CHANGELOG entry for $VERSION"; exit 5; }
