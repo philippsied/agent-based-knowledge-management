@@ -1,6 +1,6 @@
 ---
 title: PLAN — visualize skill integration (decision-locked execution plan)
-status: DECISION-LOCKED (planning only — NOT executed). Phases B→E ready to run in a later session.
+status: DECISION-LOCKED + POLICY-GATES CONFIRMED (planning only — NOT executed). Phases B→E ready to run in a later session.
 repo: /Users/philipp/AI-powered_workbench/agent-based-knowledge-management
 input: docs/specs/SPEC-visualize-wiki-integration.md (§0 decision, §6 wiring checklist, §7 open questions, §8 phases)
 author: planning pass (read-only; evidence-backed)
@@ -17,25 +17,21 @@ file-exact steps. It is a **planning artifact** — nothing here has been execut
 
 ## ⚠️ Review gate — confirm BEFORE execute
 
-Three decisions below are **maintainer-policy calls**, not mechanical facts. They are locked to a
-recommendation for planning purposes but MUST be confirmed by the maintainer before the execution
-session runs the affected step:
+Three decisions below were **maintainer-policy calls**. All three were **CONFIRMED by the
+maintainer on 2026-06-30** — the execution session runs them as locked; no re-ask needed.
 
 1. **Gitignore commit-policy (Q3)** — "are generated visualizations committed or ignored?"
-   Locked recommendation: **ignore generated HTML** (treat as ephemeral, consistent with the
-   existing `wiki/*` + `_attachments/` ignore posture). This is a vault-philosophy call.
-   → Affects Phase C step C4.
+   ✅ **CONFIRMED: ignore** (rationale: HTML is regenerable from the skill, so treat as ephemeral —
+   consistent with the existing `wiki/*` + `_attachments/` ignore posture). → Affects Phase C step C4.
 2. **Version bump (Q4)** — "does adding this skill warrant a plugin minor bump (1.10.1 → 1.11.0)?"
-   Locked recommendation: **yes, bump to 1.11.0 on the next release cut** (new user-facing skill =
-   minor under semver), keep upstream `version: 0.3.0` inside the skill metadata. Release-timing is
-   the maintainer's call. → Affects Phase E step E5.
+   ✅ **CONFIRMED: yes, bump to 1.11.0** on the release cut that includes this skill (new
+   user-facing skill = minor under semver), keep upstream `version: 0.3.0` inside the skill
+   metadata. → Affects Phase E step E5.
 3. **Attribution mechanism (Q6)** — where `careerhackeralex` credit lives.
-   Locked recommendation: **add a README "Credits" section + keep author in skill frontmatter**
-   (no separate NOTICE file). Attribution form is a maintainer/legal-style preference.
-   → Affects Phase D step D2.
+   ✅ **CONFIRMED: README "Credits" section** + keep author in skill frontmatter (no separate
+   NOTICE file). → Affects Phase D step D2.
 
-If the maintainer disagrees with any of the three, only the named step changes; the rest of the
-plan stands.
+All three policy gates are confirmed; Phases B→E are fully unblocked for the execution session.
 
 ---
 
