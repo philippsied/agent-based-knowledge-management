@@ -10,7 +10,7 @@ This page stays close to shipped behavior in `v1.6.0`. It explains what setup cr
 
 DragonScale is a memory-layer extension for the wiki. It covers rollups, deterministic page IDs, duplicate detection, and one opt-in topic-selection path for `/autoresearch`. It is not required for the base vault.
 
-If you never run `bash bin/setup-dragonscale.sh`, the base install and the original skill behavior remain in place. The repo uses feature detection so DragonScale can stay optional instead of becoming a hard dependency.
+If you never run `python3 bin/setup-dragonscale.py`, the base install and the original skill behavior remain in place. The repo uses feature detection so DragonScale can stay optional instead of becoming a hard dependency.
 
 The concept page is broader than this guide. This guide is operational. When the spec and implementation differ in detail, prefer the shipped scripts and skills for day-to-day behavior.
 
@@ -34,18 +34,18 @@ DragonScale is an add-on, not a replacement for base setup. Do the normal vault 
 At minimum:
 
 - clone the repo or install the plugin
-- run `bash bin/setup-vault.sh`
+- run `python3 bin/setup-vault.py`
 - open the folder as an Obsidian vault
 - use `/wiki` to scaffold or continue setup
 
 The DragonScale setup script accepts one optional argument, the vault path:
 
 ```bash
-bash bin/setup-dragonscale.sh
+python3 bin/setup-dragonscale.py
 ```
 
 ```bash
-bash bin/setup-dragonscale.sh /path/to/vault
+python3 bin/setup-dragonscale.py /path/to/vault
 ```
 
 If you omit the path, it uses the repo root inferred from `bin/`.
@@ -102,12 +102,12 @@ If DragonScale setup has never been run, `wiki-ingest` and `wiki-lint` keep thei
 
 ## Setup
 
-### Run bin/setup-dragonscale.sh
+### Run bin/setup-dragonscale.py
 
 Run:
 
 ```bash
-bash bin/setup-dragonscale.sh
+python3 bin/setup-dragonscale.py
 ```
 
 The script is idempotent. It is safe to re-run and it does not overwrite the runtime files it already created.
@@ -504,7 +504,7 @@ command -v flock
 If it is absent, install the package that provides it for your system, then rerun:
 
 ```bash
-bash bin/setup-dragonscale.sh
+python3 bin/setup-dragonscale.py
 ```
 
 Do not work around this by editing `.vault-meta/address-counter.txt` directly.
@@ -561,5 +561,5 @@ Then stop invoking the DragonScale-specific helpers and skills. This leaves your
 If you later want DragonScale back, rerun:
 
 ```bash
-bash bin/setup-dragonscale.sh
+python3 bin/setup-dragonscale.py
 ```

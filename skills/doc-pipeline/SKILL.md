@@ -10,7 +10,7 @@ human approval gate in the middle. The clean output feeds the `wiki-ingest` skil
 
 ```
 <vault>/.raw/**/pre-convert/<file>     Stage 0  source (immutable)
-        │  convert-doc.sh
+        │  convert-doc.py
         ▼
 <vault>/.raw/_staging/<slug>.md        Stage 1  raw markdown  + _ref/<slug>.ref.md
         │  QC pass (this skill) — annotate in place, do NOT edit content
@@ -18,7 +18,7 @@ human approval gate in the middle. The clean output feeds the `wiki-ingest` skil
 <vault>/.raw/_staging/<slug>.md        Stage 2  raw MD + <!-- REVIEW --> comments
         │  human reads annotations → sets status: approved        ← APPROVAL GATE
         ▼
-        │  finalize-md.sh
+        │  finalize-md.py
         ▼
 <vault>/.raw/<slug>.md                 Stage 4  clean, ingest-ready → wiki-ingest
 ```
@@ -31,14 +31,14 @@ The two helper scripts live in `scripts/` next to this skill. Run the pipeline
 via the `/doc-pipeline` command, which guarantees `$CLAUDE_PLUGIN_ROOT` is set:
 
 ```bash
-"$CLAUDE_PLUGIN_ROOT/skills/doc-pipeline/scripts/convert-doc.sh"   # Stage 1
-"$CLAUDE_PLUGIN_ROOT/skills/doc-pipeline/scripts/finalize-md.sh"   # Stage 4
+"$CLAUDE_PLUGIN_ROOT/skills/doc-pipeline/scripts/convert-doc.py"   # Stage 1
+"$CLAUDE_PLUGIN_ROOT/skills/doc-pipeline/scripts/finalize-md.py"   # Stage 4
 ```
 
 If the skill is triggered without `$CLAUDE_PLUGIN_ROOT` set (e.g. autonomously,
 not through the command), locate this skill's own directory and call the scripts
 from its `scripts/` subfolder. The scripts operate on the **current vault**
-(resolved via the plugin-wide `lib/vault_root.sh` — order: `KM_VAULT_PATH` env
+(resolved via the plugin-wide `lib/vault_root.py` — order: `KM_VAULT_PATH` env
 → cwd; override with `KM_VAULT_PATH` for hooks/CI where cwd is not the vault),
 regardless of where the plugin is installed.
 Requires `markit` (`npm i -g markit-ai`); a `pandoc` reference and macOS
@@ -60,9 +60,9 @@ for Stage 1+2 in parallel (see Batch mode), then review and finalize.
 ## Stage 1 — Convert (deterministic, no judgement)
 
 ```bash
-"$CLAUDE_PLUGIN_ROOT/skills/doc-pipeline/scripts/convert-doc.sh" "<path/to/source>"
+"$CLAUDE_PLUGIN_ROOT/skills/doc-pipeline/scripts/convert-doc.py" "<path/to/source>"
 # custom staging layout, e.g. a vault that nests under .raw/training/:
-"$CLAUDE_PLUGIN_ROOT/skills/doc-pipeline/scripts/convert-doc.sh" "<src>" --out-dir .raw/training/_staging
+"$CLAUDE_PLUGIN_ROOT/skills/doc-pipeline/scripts/convert-doc.py" "<src>" --out-dir .raw/training/_staging
 ```
 
 - Writes `.raw/_staging/<slug>.md` (markit) and `.raw/_staging/_ref/<slug>.ref.md` (pandoc, for docx/doc/html/epub).
@@ -165,7 +165,7 @@ Never finalize a document the author has not approved.
 ## Stage 4 — Finalize (deterministic)
 
 ```bash
-"$CLAUDE_PLUGIN_ROOT/skills/doc-pipeline/scripts/finalize-md.sh" .raw/_staging/<slug>.md
+"$CLAUDE_PLUGIN_ROOT/skills/doc-pipeline/scripts/finalize-md.py" .raw/_staging/<slug>.md
 ```
 
 - Refuses unless `status: approved` (override `--force`).
@@ -198,7 +198,7 @@ Correcting the text is a separate, explicit author decision.
 
 For multiple documents, dispatch **one subagent per document** in a single
 message. Each runs Stage 1 + Stage 2 and reports a short summary. Brief each with:
-the source path, the `convert-doc.sh` call, this skill's QC checklist + schema,
+the source path, the `convert-doc.py` call, this skill's QC checklist + schema,
 "annotate in place, do not rewrite prose; do NOT web-search — only flag", and
 "report under 250 words: fidelity, flags, checkworthy". Then present the combined
 gate summary and finalize only what the author approves.

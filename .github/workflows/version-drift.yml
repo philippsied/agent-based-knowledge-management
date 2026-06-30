@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - '.claude-plugin/**'
-      - 'bin/sync-versions.sh'
+      - 'bin/sync-versions.py'
 
 jobs:
   drift:
@@ -17,15 +17,11 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y jq
       - name: Re-run sync-versions and check for drift
         run: |
-          if [ ! -x bin/sync-versions.sh ]; then
-            echo "bin/sync-versions.sh not found or not executable — Track D not merged yet?"
-            exit 0
-          fi
           cp .claude-plugin/marketplace.json /tmp/marketplace.before.json
-          bash bin/sync-versions.sh
+          python3 bin/sync-versions.py
           if ! diff -q /tmp/marketplace.before.json .claude-plugin/marketplace.json >/dev/null 2>&1; then
             echo "Version drift detected!"
-            echo "Run 'bash bin/sync-versions.sh' locally and commit the result."
+            echo "Run 'python3 bin/sync-versions.py' locally and commit the result."
             diff /tmp/marketplace.before.json .claude-plugin/marketplace.json || true
             exit 1
           fi

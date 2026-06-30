@@ -14,7 +14,7 @@ training signal, no automated optimization. The eval is a **guardrail**.
 ```
 evals/
 ├── README.md
-├── run.sh                          # entry point — iterates cases, writes one JSON
+├── run.py                          # entry point — iterates cases, writes one JSON
 ├── score-summary.py                # converts JSON to a Markdown summary
 ├── results/                        # one JSON file per run, timestamped
 │
@@ -57,7 +57,7 @@ evals/
    }
    ```
 4. Add the inputs and the expected-* files per the layout above.
-5. Run `./evals/run.sh` and verify the new case appears in the output.
+5. Run `./evals/run.py` and verify the new case appears in the output.
 
 Keep cases small. One case = one specific behavior. If a case needs
 > 20 lines of input or > 5 expected outputs, split it.
@@ -67,9 +67,9 @@ Keep cases small. One case = one specific behavior. If a case needs
 ## Running
 
 ```bash
-./evals/run.sh                     # all cases, default
-./evals/run.sh ingest              # only ingest cases
-./evals/run.sh lint case-001-*     # specific case
+./evals/run.py                     # all cases, default
+./evals/run.py ingest              # only ingest cases
+./evals/run.py lint case-001-*     # specific case
 ```
 
 Outputs:

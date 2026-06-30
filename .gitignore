@@ -5,10 +5,10 @@
 .obsidian/plugins/*/data.json
 !.obsidian/plugins/calendar/data.json
 
-# Excalidraw main.js is 8MB — downloaded by setup-vault.sh, not tracked in git
+# Excalidraw main.js is 8MB — downloaded by setup-vault.py, not tracked in git
 .obsidian/plugins/obsidian-excalidraw-plugin/main.js
 
-# Obsidian Memos / Thino v1.9.7 binaries — downloaded by setup-vault.sh (MIT, ~1MB)
+# Obsidian Memos / Thino v1.9.7 binaries — downloaded by setup-vault.py (MIT, ~1MB)
 .obsidian/plugins/thino/main.js
 .obsidian/plugins/thino/styles.css
 .obsidian/plugins/thino/data.json
@@ -119,7 +119,7 @@ _attachments/
 evals/results/
 
 # Vault content is NOT shipped with the plugin distribution.
-# Each install scaffolds its own vault via bin/setup-vault.sh.
+# Each install scaffolds its own vault via bin/setup-vault.py.
 # Only the directory anchors (.gitkeep) and shared default config remain tracked.
 /wiki/*
 !/wiki/.gitkeep

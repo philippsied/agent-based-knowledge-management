@@ -1,6 +1,6 @@
 # Operational Rules — opt-in reference pack
 
-Modular rule files that govern how an agent operates against this vault. They are intentionally **not** auto-installed by `bin/setup-vault.sh` because they impose strong conventions (atomic commits, sandbox awareness, verification-before-change). Adopt them on a per-vault basis.
+Modular rule files that govern how an agent operates against this vault. They are intentionally **not** auto-installed by `bin/setup-vault.py` because they impose strong conventions (atomic commits, sandbox awareness, verification-before-change). Adopt them on a per-vault basis.
 
 ## How to install
 

@@ -7,7 +7,7 @@ Read the `doc-pipeline` skill. Then run the pipeline for the document(s) the use
 Workflow:
 
 1. **Stage 1 — Convert**: for each document, run
-   `"$CLAUDE_PLUGIN_ROOT/skills/doc-pipeline/scripts/convert-doc.sh" "<source>"`.
+   `"$CLAUDE_PLUGIN_ROOT/skills/doc-pipeline/scripts/convert-doc.py" "<source>"`.
    For 2+ documents, dispatch one subagent per document in parallel (Batch mode in the skill).
 2. **Stage 2 — QC**: annotate each staging file in place with `<!-- REVIEW[...] -->`
    comments and the `<!-- PIPELINE-REVIEW -->` header. Annotate, never rewrite prose.
@@ -15,7 +15,7 @@ Workflow:
 3. **Stage 3 — Gate**: present a compact per-document summary (fidelity, flag tally,
    checkworthy list, top high-severity items). Stop and let the author approve.
 4. **Stage 4 — Finalize**: once the author sets `status: approved`, run
-   `"$CLAUDE_PLUGIN_ROOT/skills/doc-pipeline/scripts/finalize-md.sh" <staging-file>`,
+   `"$CLAUDE_PLUGIN_ROOT/skills/doc-pipeline/scripts/finalize-md.py" <staging-file>`,
    then offer to hand the clean file to `wiki-ingest`.
 
 If the user asks to fact-check a specific claim, follow the skill's Fact-check
