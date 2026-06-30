@@ -394,6 +394,8 @@ Each repoint lists the **new `.py` invocation form**. Total `.sh` reference surf
 
 ## 4. Dependency-ordered phases
 
+> **Progress (resume marker):** P0 ✅ done (commit `2c8ed48`) · P1 ✅ done (commit `666b196`) — gates green: `make test`, 183 run-lint checks, byte-identical report, stale-ref scan clean. **P2–P6 pending.** Carry-over for P3: `bin/release.sh` still pipes `jq -e '.error_count == 0'` against a key that never existed in the JSON (CI correctly uses `.totals.error`); the `release.py` port should fix the key and drop `jq`.
+
 Topologically ordered so nothing breaks mid-flight. Each phase = one coherent commit (conventional format).
 **`lib/vault_root.sh` is deleted LAST** (Phase 6), only after its three shell sourcers are Python.
 **The `run-lint.sh` shim** is deleted in Phase 3 once CI/Makefile/release/wiki-lint are repointed.
