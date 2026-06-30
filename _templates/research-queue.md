@@ -72,4 +72,4 @@ Every task carries a `program:` field (see [[decisions/Research-Program-Codes]] 
 - **One row = one logical research task**. Decompose multi-question batches into separate rows so each can be `done` independently.
 - **Brief column**: link to a `wiki/meta/brief-R-YYYY-NNN-slug.md` page using the [[research-brief]] template. Placeholder `_to brief_` is fine for early-stage rows.
 - **Deps**: comma-separated `R-YYYY-NNN` IDs. Em-dash `—`, ASCII hyphen `-`, or empty cell all mean "no deps".
-- **Lint integration**: `scripts/run-lint.sh` runs `lint-deps.py` (DAG check) and `lint-programs.py` (program-code whitelist) automatically when this file exists. Severity = `error` if duplicates / missing deps / cycles / unknown codes are detected.
+- **Lint integration**: `scripts/run-lint.py` runs `lint-deps.py` (DAG check) and `lint-programs.py` (program-code whitelist) automatically when this file exists. Severity = `error` if duplicates / missing deps / cycles / unknown codes are detected.

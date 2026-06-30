@@ -4,6 +4,19 @@ All notable changes to agentic-knowledge-management. Format: [Keep a Changelog](
 
 ## [Unreleased]
 
+### Changed
+
+- **Shell→Python migration (in progress).** The `run-lint` aggregator and the DragonScale address allocator are now pure Python (`scripts/run-lint.py`, `scripts/allocate-address.py`), invoked directly with no shell wrapper. `run-lint.py` additionally folds its six `lint-*.py` checks in-process (imported `collect*` entrypoints instead of `sys.executable` subprocesses), so the aggregate `--json` and Markdown report are produced with zero subprocess startup and stay byte-identical to the prior output. Each `lint-*.py` remains runnable standalone via its `__main__`. Vault root resolves via `lib/vault_root.py`. Tracked under `docs/plans/PLAN-sh-to-py-full-migration.md`.
+
+### Fixed
+
+- **`dead_link_targets` no longer false-flags wikilinks to `.raw/` sources as dead.** The legacy shell aggregator built the `.raw` half of the valid-target set from `find`'s full path with only a trailing `.md` stripped, so a bare `[[foo]]` could never match a source `.raw/foo.pdf` and was always reported DEAD (the raw-union had never worked). `run-lint.py` now adds each in-glob raw file's basename with the final extension stripped, case-insensitively, ASCII-lowercased, so source citations resolve. This intentionally changes dead-link results versus the previous shell implementation: some links that were falsely dead become valid.
+
+### Removed
+
+- **`scripts/run-lint.sh` and `scripts/allocate-address.sh` removed.** The Python ports are now the direct entrypoints; `Makefile`, CI (`.github/workflows/test.yml`), `bin/release.sh`, `bin/setup-dragonscale.sh`, the `wiki-lint` / `wiki-ingest` skills + agents, and `docs/dragonscale-guide.md` were repointed to `.py`. Feature-detection guards switched from `[ -x …sh ]` to `[ -f …py ]` so a missing port disables the optional path rather than silently passing.
+- **`tests/test_run_lint.sh` retired** in favor of `tests/test_run_lint.py`. The shell test's top-level-key and seeded-finding assertions are a subset of the Python characterization suite (183 checks). `make test-run-lint` and CI now run `python3 tests/test_run_lint.py`.
+
 ## [1.10.1] - 2026-06-21
 
 ### Changed

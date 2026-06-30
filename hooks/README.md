@@ -8,7 +8,7 @@ Plugin hooks for the agentic-knowledge-management wiki vault. All hooks are defi
 |---|---|---|
 | `SessionStart` | command + prompt | Loads `wiki/hot.md` into context. Command type runs `[ -f wiki/hot.md ] && cat wiki/hot.md` as the canonical safety check (works for non-vault sessions without erroring). Prompt type complements with semantic context restoration. Matcher: `startup\|resume`. |
 | `PostCompact` | prompt | Re-loads `wiki/hot.md` after context compaction. Hook-injected context does NOT survive compaction (only `CLAUDE.md` does), so this hook restores the hot cache mid-session. |
-| `PreToolUse` | command | Enforces vault path-safety and the hyphenated-filename convention before Write/Edit/NotebookEdit calls. Runs `hooks/wiki-path-safety.sh`, which exits 2 with a block reason on stderr when a write violates the whitelist or when a `wiki/*.md` filename contains spaces. Vault root is resolved via `KM_VAULT_PATH` (env) or CWD. See [Path-Safety Hook](#path-safety-hook) below. |
+| `PreToolUse` | command | Enforces vault path-safety and the hyphenated-filename convention before Write/Edit/NotebookEdit calls. Runs `hooks/wiki-path-safety.py`, which exits 2 with a block reason on stderr when a write violates the whitelist or when a `wiki/*.md` filename contains spaces. Vault root is resolved via `KM_VAULT_PATH` (env) or CWD. See [Path-Safety Hook](#path-safety-hook) below. |
 | `PostToolUse` | command | Auto-commits any wiki/ or .raw/ changes after Write or Edit tool calls. Guarded by `[ -d .git ]` so it never errors in non-git directories, and by `git diff --cached --quiet` so it never creates empty commits. |
 | `Stop` | prompt | Updates `wiki/hot.md` at the end of every Claude response with a brief summary of what changed. |
 
@@ -37,7 +37,7 @@ The PreToolUse path-safety hook is also safe in non-vault sessions: it resolves 
 
 ## Path-Safety Hook
 
-The script at `hooks/wiki-path-safety.sh` enforces two deterministic rules:
+The script at `hooks/wiki-path-safety.py` enforces two deterministic rules:
 
 1. **Path whitelist** — writes are only allowed under `wiki/`, `scripts/`, `.vault-meta/`, `.claude/`, `$TMPDIR`, plus the project-root files `CLAUDE.md`, `README.md`, `.gitignore`, `.gitattributes`, and the single mutable manifest `.raw/.manifest.json`. Everything else (especially `.raw/*` source documents, top-level domain folders like `concepts/`, and arbitrary `~/`) is blocked.
 2. **Filename convention** — `wiki/*.md` filenames may not contain spaces; the canonical form is hyphenated Title-Case (`Mom-Test.md`, not `Mom Test.md`). `wiki/_templates/*` and `wiki/meta/lint-report-*` are exempt because the templater system and lint-report writers legitimately produce filenames the hook cannot pre-validate.

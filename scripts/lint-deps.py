@@ -135,26 +135,9 @@ def find_cycles(rows: list[dict]) -> list[list[str]]:
     return cycles
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--vault", help="Vault root override (else KM_VAULT_PATH or CWD)")
-    parser.add_argument("--json", action="store_true", help="machine-readable output")
-    parser.add_argument(
-        "--ready",
-        action="store_true",
-        help="print only the ready set (queued + all deps done), one ID per line",
-    )
-    args = parser.parse_args()
-
-    vault = resolve_vault(args.vault)
-    queue_path = vault / "wiki" / "meta" / "research-queue.md"
-
-    if not queue_path.exists():
-        print(f"ERROR: {queue_path} not found.", file=sys.stderr)
-        return 2
-
-    text = queue_path.read_text(encoding="utf-8")
-    rows = parse_queue(text)
+def analyze(queue_path: Path, rows: list[dict]) -> dict:
+    """Run the four DAG checks over parsed queue rows. Returns the exact dict
+    the CLI emits under --json (the canonical structured result)."""
     by_id = {r["id"]: r for r in rows}
 
     # 1. Duplicate IDs.
@@ -183,6 +166,54 @@ def main() -> int:
         if all(by_id.get(d, {}).get("status") == "done" for d in r["deps"]):
             ready.append(r["id"])
 
+    return {
+        "queue_file": str(queue_path),
+        "task_count": len(rows),
+        "duplicates": duplicates,
+        "missing_targets": [
+            {"task": t, "missing_dep": d} for (t, d) in missing_targets
+        ],
+        "cycles": cycles,
+        "ready_set": ready,
+    }
+
+
+def collect(vault_root: Path) -> dict:
+    """Importable entrypoint for run-lint.py. Returns the same dict the CLI
+    emits under --json for the vault's research-queue, without print()."""
+    queue_path = vault_root / "wiki" / "meta" / "research-queue.md"
+    rows = parse_queue(queue_path.read_text(encoding="utf-8"))
+    return analyze(queue_path, rows)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--vault", help="Vault root override (else KM_VAULT_PATH or CWD)")
+    parser.add_argument("--json", action="store_true", help="machine-readable output")
+    parser.add_argument(
+        "--ready",
+        action="store_true",
+        help="print only the ready set (queued + all deps done), one ID per line",
+    )
+    args = parser.parse_args()
+
+    vault = resolve_vault(args.vault)
+    queue_path = vault / "wiki" / "meta" / "research-queue.md"
+
+    if not queue_path.exists():
+        print(f"ERROR: {queue_path} not found.", file=sys.stderr)
+        return 2
+
+    text = queue_path.read_text(encoding="utf-8")
+    rows = parse_queue(text)
+    by_id = {r["id"]: r for r in rows}
+
+    result = analyze(queue_path, rows)
+    duplicates = result["duplicates"]
+    missing_targets = [(m["task"], m["missing_dep"]) for m in result["missing_targets"]]
+    cycles = result["cycles"]
+    ready = result["ready_set"]
+
     errors = bool(duplicates or missing_targets or cycles)
 
     if args.ready:
@@ -191,17 +222,7 @@ def main() -> int:
         return 1 if errors else 0
 
     if args.json:
-        out = {
-            "queue_file": str(queue_path),
-            "task_count": len(rows),
-            "duplicates": duplicates,
-            "missing_targets": [
-                {"task": t, "missing_dep": d} for (t, d) in missing_targets
-            ],
-            "cycles": cycles,
-            "ready_set": ready,
-        }
-        print(json.dumps(out, indent=2))
+        print(json.dumps(result, indent=2))
         return 1 if errors else 0
 
     # Human text output.

@@ -73,6 +73,29 @@ def find_overlaps(pages: list[Path], threshold: float) -> list[tuple[float, Path
     return findings
 
 
+def format_lines(root: Path, threshold: float) -> list[str]:
+    """Build the exact stdout lines the CLI prints (header + findings)."""
+    pages = collect_pages(root)
+    findings = find_overlaps(pages, threshold)
+    out = [
+        f"# Title-overlap findings (threshold={threshold}, pages={len(pages)})",
+        f"# Format: score\\tpath-a\\tpath-b",
+        "",
+    ]
+    for score, a, b in findings:
+        ra = a.relative_to(root).as_posix()
+        rb = b.relative_to(root).as_posix()
+        out.append(f"{score:.2f}\t{ra}\t{rb}")
+    return out
+
+
+def collect_lines(wiki_root: Path, threshold: float = 0.55) -> str:
+    """Importable entrypoint for run-lint.py. Returns the same stdout the CLI
+    prints (trailing newline included), so run-lint's digit-line count matches
+    the subprocess output byte-for-byte."""
+    return "\n".join(format_lines(wiki_root, threshold)) + "\n"
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("root", nargs="?", default=None,
@@ -86,16 +109,8 @@ def main(argv: list[str]) -> int:
         print(f"ERROR: {root} is not a directory", file=sys.stderr)
         return 2
 
-    pages = collect_pages(root)
-    findings = find_overlaps(pages, args.threshold)
-
-    print(f"# Title-overlap findings (threshold={args.threshold}, pages={len(pages)})")
-    print(f"# Format: score\\tpath-a\\tpath-b")
-    print()
-    for score, a, b in findings:
-        ra = a.relative_to(root).as_posix()
-        rb = b.relative_to(root).as_posix()
-        print(f"{score:.2f}\t{ra}\t{rb}")
+    for line in format_lines(root, args.threshold):
+        print(line)
     return 0
 
 

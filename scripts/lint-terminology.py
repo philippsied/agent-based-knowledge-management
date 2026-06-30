@@ -221,6 +221,25 @@ def format_markdown(findings: list[Finding]) -> str:
     return "\n".join(lines)
 
 
+def compute_findings(wiki_root: Path) -> list[Finding]:
+    """Run all five checks over the wiki and return the Finding list."""
+    termbase_path = wiki_root / TERMBASE_REL
+    termbase_targets = parse_termbase(termbase_path)
+    pages = [load_page(p) for p in iter_pages(wiki_root)]
+
+    findings: list[Finding] = []
+    for page in pages:
+        findings.extend(check_page(page, termbase_targets, wiki_root))
+    findings.extend(check_termbase_orphans(termbase_targets, pages, wiki_root))
+    return findings
+
+
+def collect_findings(wiki_root: Path) -> list[dict]:
+    """Importable entrypoint for run-lint.py. Returns the same list of finding
+    dicts the CLI emits under --json, without going through print()."""
+    return [asdict(f) for f in compute_findings(wiki_root)]
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("root", nargs="?", default=None,
@@ -234,14 +253,7 @@ def main(argv: list[str]) -> int:
         print(f"ERROR: {wiki_root} is not a directory", file=sys.stderr)
         return 2
 
-    termbase_path = wiki_root / TERMBASE_REL
-    termbase_targets = parse_termbase(termbase_path)
-    pages = [load_page(p) for p in iter_pages(wiki_root)]
-
-    findings: list[Finding] = []
-    for page in pages:
-        findings.extend(check_page(page, termbase_targets, wiki_root))
-    findings.extend(check_termbase_orphans(termbase_targets, pages, wiki_root))
+    findings = compute_findings(wiki_root)
 
     if args.json:
         print(json.dumps([asdict(f) for f in findings], indent=2, ensure_ascii=False))

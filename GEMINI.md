@@ -13,7 +13,7 @@ ln -s "$(pwd)/skills" ~/.gemini/skills/agentic-knowledge-management
 Or run the bundled installer:
 
 ```bash
-bash bin/setup-multi-agent.sh
+python3 bin/setup-multi-agent.py
 ```
 
 ## Skills

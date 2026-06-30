@@ -3,7 +3,7 @@
 **Claude + Obsidian Knowledge Companion**
 Version 1.6.0 · [github.com/philippsied/agent-based-knowledge-management](https://github.com/philippsied/agent-based-knowledge-management)
 
-> **Optional: DragonScale Memory extension.** If you want flat extractive log folds, deterministic page addresses, semantic tiling lint, and boundary-first autoresearch topic selection, run `bash bin/setup-dragonscale.sh` after the base install. Extra prerequisites beyond the base: `flock` (standard on Linux; available via `util-linux` on macOS) and `python3` (for the tiling and boundary helpers). Optional: `ollama` with `nomic-embed-text` pulled if you want the semantic tiling lint (Mechanism 3 only; it no-ops gracefully when ollama or the model is unavailable). The boundary-first scorer (Mechanism 4) needs only `python3`, no ollama. See [`docs/dragonscale-guide.md`](./dragonscale-guide.md) for the user-facing guide, `wiki/concepts/DragonScale Memory.md` for the full spec, and `CHANGELOG.md` for what shipped in 1.6.0.
+> **Optional: DragonScale Memory extension.** If you want flat extractive log folds, deterministic page addresses, semantic tiling lint, and boundary-first autoresearch topic selection, run `python3 bin/setup-dragonscale.py` after the base install. Extra prerequisites beyond the base: `flock` (standard on Linux; available via `util-linux` on macOS) and `python3` (for the tiling and boundary helpers). Optional: `ollama` with `nomic-embed-text` pulled if you want the semantic tiling lint (Mechanism 3 only; it no-ops gracefully when ollama or the model is unavailable). The boundary-first scorer (Mechanism 4) needs only `python3`, no ollama. See [`docs/dragonscale-guide.md`](./dragonscale-guide.md) for the user-facing guide, `wiki/concepts/DragonScale Memory.md` for the full spec, and `CHANGELOG.md` for what shipped in 1.6.0.
 
 ---
 
@@ -34,7 +34,7 @@ Full setup in under 2 minutes.
 ```bash
 git clone https://github.com/philippsied/agent-based-knowledge-management
 cd agent-based-knowledge-management
-bash bin/setup-vault.sh
+python3 bin/setup-vault.py
 ```
 
 Then in Obsidian: **Manage Vaults → Open folder as vault → select `agent-based-knowledge-management/`**
@@ -147,7 +147,7 @@ Also install from Community Plugins:
 
 ## CSS Snippets
 
-Three snippets are auto-enabled by `setup-vault.sh`:
+Three snippets are auto-enabled by `setup-vault.py`:
 
 | Snippet | Effect |
 |---------|--------|
@@ -214,7 +214,7 @@ claude mcp add-json obsidian-vault '{
 |---------|-----|
 | `/wiki` says "not found" | Make sure `agentic-knowledge-management` plugin is enabled: `claude plugin list` |
 | Graph colors reset after closing Obsidian | Open Graph view → gear → Color groups → re-add once. Permanent after that. |
-| Excalidraw not loading | Run `bash bin/setup-vault.sh` to download `main.js` (8MB, not in git) |
+| Excalidraw not loading | Run `python3 bin/setup-vault.py` to download `main.js` (8MB, not in git) |
 | Dashboard shows no results | Install the **Dataview** plugin from Community Plugins |
 | Hot cache not loading at session start | Check hooks: `claude hooks list` — SessionStart hook should be present |
 

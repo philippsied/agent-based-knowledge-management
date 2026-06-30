@@ -9,16 +9,16 @@ help:
 	@echo "  make lint                  Run the canonical wiki-quality lint aggregator"
 	@echo "  make sync-versions         Mirror plugin.json version into marketplace.json"
 	@echo "  make release VERSION=X.Y.Z Prepare a new release (test + lint + bump + commit + tag)"
-	@echo "  make test-vault-root       lib/vault_root.{py,sh} resolver tests"
+	@echo "  make test-vault-root       lib/vault_root.py resolver tests"
 	@echo "  make test-address          scripts/allocate-address.py tests (python)"
 	@echo "  make test-tiling           scripts/tiling-check.py tests (python, no ollama required)"
 	@echo "  make test-boundary         scripts/boundary-score.py tests (python, no prereqs)"
 	@echo "  make test-terminology      scripts/lint-terminology.py tests"
 	@echo "  make test-title-overlap    scripts/lint-title-overlap.py tests"
 	@echo "  make test-lint-orphans     scripts/lint-orphans.py tests"
-	@echo "  make test-run-lint         scripts/run-lint.sh aggregator tests"
-	@echo "  make test-sync-versions    bin/sync-versions.sh tests"
-	@echo "  make setup-dragonscale     Run bin/setup-dragonscale.sh against this vault"
+	@echo "  make test-run-lint         scripts/run-lint.py aggregator tests (python)"
+	@echo "  make test-sync-versions    bin/sync-versions.py tests"
+	@echo "  make setup-dragonscale     Run bin/setup-dragonscale.py against this vault"
 	@echo "  make clean                 Remove local Python caches and .DS_Store"
 	@echo "  make clean-test-state      Remove runtime lockfiles and tiling cache"
 
@@ -27,13 +27,11 @@ test: test-vault-root test-address test-tiling test-boundary test-terminology te
 	@echo "All tests passed."
 
 lint:
-	@bash scripts/run-lint.sh
+	@python3 scripts/run-lint.py
 
 test-vault-root:
 	@echo "=== test_vault_root.py ==="
 	@python3 tests/test_vault_root.py
-	@echo "=== test_vault_root.sh ==="
-	@bash tests/test_vault_root.sh
 
 test-address:
 	@echo "=== test_allocate_address.py ==="
@@ -60,26 +58,26 @@ test-lint-orphans:
 	@python3 tests/test_lint_orphans.py
 
 test-run-lint:
-	@echo "=== test_run_lint.sh ==="
-	@bash tests/test_run_lint.sh
+	@echo "=== test_run_lint.py ==="
+	@python3 tests/test_run_lint.py
 
 test-sync-versions:
-	@echo "=== test_sync_versions.sh ==="
-	@bash tests/test_sync_versions.sh
+	@echo "=== test_sync_versions.py ==="
+	@python3 tests/test_sync_versions.py
 
 test-wiki-path-safety:
-	@echo "=== test_wiki_path_safety.sh ==="
-	@bash tests/test_wiki_path_safety.sh
+	@echo "=== test_wiki_path_safety.py ==="
+	@python3 tests/test_wiki_path_safety.py
 
 sync-versions:
-	@bash bin/sync-versions.sh
+	@python3 bin/sync-versions.py
 
 release:
 	@if [ -z "$(VERSION)" ]; then echo "Usage: make release VERSION=X.Y.Z"; exit 2; fi
-	@bash bin/release.sh $(VERSION)
+	@python3 bin/release.py $(VERSION)
 
 setup-dragonscale:
-	@bash bin/setup-dragonscale.sh
+	@python3 bin/setup-dragonscale.py
 
 clean:
 	@rm -rf lib/__pycache__ scripts/__pycache__ */__pycache__ .DS_Store

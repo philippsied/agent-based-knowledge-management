@@ -65,14 +65,14 @@ Most Obsidian AI plugins are chat interfaces - they answer questions about your 
 ```bash
 git clone https://github.com/philippsied/agent-based-knowledge-management
 cd agent-based-knowledge-management
-bash bin/setup-vault.sh
+python3 bin/setup-vault.py
 ```
 
 Open the folder in Obsidian: **Manage Vaults → Open folder as vault → select `agent-based-knowledge-management/`**
 
 Open Claude Code in the same folder. Type `/wiki`.
 
-> `setup-vault.sh` configures `graph.json` (filter + colors), `app.json` (excludes plugin dirs), and `appearance.json` (enables CSS). Run it once before the first Obsidian open. You get the fully pre-configured graph view, color scheme, and wiki structure out of the box.
+> `setup-vault.py` configures `graph.json` (filter + colors), `app.json` (excludes plugin dirs), and `appearance.json` (enables CSS). Run it once before the first Obsidian open. You get the fully pre-configured graph view, color scheme, and wiki structure out of the box.
 
 ---
 
@@ -191,7 +191,7 @@ A typical scaffold creates:
 
 ## Path Safety Hook
 
-`hooks/wiki-path-safety.sh` is a PreToolUse hook that enforces vault write conventions: only specific paths under the vault root are writable (`wiki/`, `scripts/`, `.vault-meta/`, `.claude/`, root `CLAUDE.md` / `README.md` / `.gitignore` / `.gitattributes`, `.raw/.manifest.json`), and `wiki/*.md` filenames must be hyphenated. Non-vault sessions and out-of-vault writes pass through untouched.
+`hooks/wiki-path-safety.py` is a PreToolUse hook that enforces vault write conventions: only specific paths under the vault root are writable (`wiki/`, `scripts/`, `.vault-meta/`, `.claude/`, root `CLAUDE.md` / `README.md` / `.gitignore` / `.gitattributes`, `.raw/.manifest.json`), and `wiki/*.md` filenames must be hyphenated. Non-vault sessions and out-of-vault writes pass through untouched.
 
 ### Modes
 
@@ -210,7 +210,7 @@ Behavior outside the whitelist is configured via `.vault-meta/config.json`:
 
 ### Switching modes
 
-Edit `.vault-meta/config.json` directly, or accept the prompt during `bin/setup-vault.sh` on fresh installs. The hook re-reads the file on every invocation, so changes take effect on the next tool call. There is no env override: hooks inherit the environment captured at session start, so a runtime variable could not toggle live mid-session.
+Edit `.vault-meta/config.json` directly, or accept the prompt during `bin/setup-vault.py` on fresh installs. The hook re-reads the file on every invocation, so changes take effect on the next tool call. There is no env override: hooks inherit the environment captured at session start, so a runtime variable could not toggle live mid-session.
 
 ### Mixed-mode reminder
 
@@ -280,7 +280,7 @@ Enable in **Settings → Community Plugins → enable**:
 | **Excalidraw** | Freehand drawing canvas, annotate images | Pre-installed* |
 | **Banners** | Notion-style header image via `banner:` frontmatter | Pre-installed |
 
-\* Excalidraw `main.js` (8MB) is downloaded automatically by `setup-vault.sh`. It is not tracked in git.
+\* Excalidraw `main.js` (8MB) is downloaded automatically by `setup-vault.py`. It is not tracked in git.
 
 ### Also install from Community Plugins (not pre-installed)
 
@@ -294,7 +294,7 @@ Also install the **[Obsidian Web Clipper](https://obsidian.md/clipper)** browser
 
 ---
 
-## CSS Snippets (auto-enabled by setup-vault.sh)
+## CSS Snippets (auto-enabled by setup-vault.py)
 
 Three snippets ship with the vault and are enabled automatically:
 

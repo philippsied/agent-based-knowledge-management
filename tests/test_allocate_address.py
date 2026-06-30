@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """test_allocate_address.py — behavioral parity tests for the address allocator.
 
-Black-box: invokes scripts/allocate-address.sh (the shell shim, exactly as real
-callers do) as a subprocess against a throwaway temp vault selected via
-KM_VAULT_PATH. Mirrors the original tests/test_allocate_address.sh suite plus a
-20-way concurrency stress that exercises the fcntl.flock guard.
+Black-box: invokes scripts/allocate-address.py (exactly as real callers do) as a
+subprocess against a throwaway temp vault selected via KM_VAULT_PATH. Mirrors the
+original tests/test_allocate_address.sh suite plus a 20-way concurrency stress
+that exercises the fcntl.flock guard.
 
 The real repo .vault-meta/ is never touched: every invocation points
 KM_VAULT_PATH at a fresh tempdir under $TMPDIR.
@@ -22,7 +22,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SHIM = ROOT / "scripts" / "allocate-address.sh"
+ALLOCATOR = ROOT / "scripts" / "allocate-address.py"
 
 PASS = 0
 
@@ -55,7 +55,7 @@ def run(vault, *args):
     env = dict(os.environ)
     env["KM_VAULT_PATH"] = str(vault)
     return subprocess.run(
-        ["bash", str(SHIM), *args],
+        [sys.executable, str(ALLOCATOR), *args],
         capture_output=True, text=True, env=env, timeout=30,
     )
 

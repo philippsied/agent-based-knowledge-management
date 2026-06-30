@@ -27,7 +27,7 @@ claude-obsidian/
 
 ## Skills Available to Cascade
 
-Run `bash bin/setup-multi-agent.sh` once to symlink `skills/` into `.windsurf/skills/`. Then Cascade auto-discovers all 13 skills:
+Run `python3 bin/setup-multi-agent.py` once to symlink `skills/` into `.windsurf/skills/`. Then Cascade auto-discovers all 13 skills:
 
 - `wiki`: orchestration, vault scaffolding, hot cache
 - `wiki-ingest`: files, URLs, images → 8-15 wiki pages
