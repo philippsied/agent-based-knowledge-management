@@ -8,6 +8,7 @@ slug `dragonscale-agentic-wiki-followups` · created 2026-07-01 · _generated, e
 | fup-2 | task | todo | adr-0004 | no | — |
 | adr-0005 | adr | todo | — | yes | — |
 | fup-4 | task | todo | adr-0005 | no | — |
+| spec-wiki-issues | spec | todo | adr-0005 | no | — |
 
 ## Ready now
 - fup-2 -> docs/tasks/dragonscale-agentic-wiki-followups.md

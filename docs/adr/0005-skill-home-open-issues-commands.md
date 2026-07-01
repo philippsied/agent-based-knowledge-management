@@ -52,6 +52,21 @@ Introduce a new dedicated skill **`wiki-issues`** that owns the full `wiki/meta/
 - Initialize `wiki/meta/OPEN-ISSUES.md` (the stack the skill operates on) — currently absent.
 - Update the skill count 14 → 15 wherever counted (ties to FUP-5).
 
+## Design constraints (from ai-secondbrain reference)
+
+The battle-tested `wiki/meta/OPEN-ISSUES.md` in the reference vault `ai-secondbrain` (a 532-line living file plus its `log.md` resolution history) fixes the shape `wiki-issues` must implement. Binding constraints — detail in [SPEC-wiki-issues](../specs/SPEC-wiki-issues.md), starting template in [docs/templates/open-issues.md](../templates/open-issues.md):
+
+- **Dual representation + drift guard** — machine `stack:` YAML (id, priority, section, title, pushed, blocked_by) in frontmatter, mirrored by human `### I-YYYY-NNN` body sections; a validator keeps them in parity.
+- **Deterministic sort, lint-enforced (not LLM)** — priority ASC · ready-first (empty `blocked_by`) · inconclusive-last · `pushed` DESC. Port the reference's `lint-open-issues.py` (schema/parity/cycles/sort) into `run-lint`.
+- **ID `I-YYYY-NNN`, year-resetting, never recycled** — fresh monotonic id on push (counter-under-lock, like DragonScale `c-NNNNNN`).
+- **`blocked_by` DAG → ready = empty** — pop takes the first ready item only.
+- **One issue per pop** — verify → exactly one of: resolved (hard-delete), patched (stale), inconclusive (sorts last).
+- **Hard-delete on resolve** — history goes to `log.md` (`Resolved (removed from OPEN-ISSUES.md): I-YYYY-NNN … "now N items, lint green"`). The file stays a live queue, not a graveyard.
+- **`WO:` (where) on every issue** — grounds it in a concrete file/location (evidence-first).
+- **Section whitelist** — controlled vocabulary, tuned to plugin domains.
+- **Format-version guard before any write** — reference failure I-2026-041: a stale flat command nearly corrupted the hybrid file.
+- **Test fixtures** for ready-first pop, priority-sorted insert, drift guard, inconclusive path — reference gap I-2026-043.
+
 ---
 ### Checklist
 - [x] Context names the real forces  ‹Why›

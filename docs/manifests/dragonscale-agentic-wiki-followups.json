@@ -67,6 +67,23 @@
       ],
       "verify": "wiki-issues skill created w/ coverage matrix; 7 command files deleted; docs updated; CI green",
       "session": null
+    },
+    {
+      "id": "spec-wiki-issues",
+      "type": "spec",
+      "path": "docs/specs/SPEC-wiki-issues.md",
+      "status": "todo",
+      "depends_on": [
+        "adr-0005"
+      ],
+      "parallel_safe": false,
+      "answers": [
+        "wie",
+        "womit",
+        "done"
+      ],
+      "verify": "AC1-AC7 met; lint-open-issues wired into run-lint",
+      "session": null
     }
   ]
 }
