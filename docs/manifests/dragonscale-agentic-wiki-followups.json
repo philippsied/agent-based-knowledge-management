@@ -23,7 +23,7 @@
       "id": "fup-2",
       "type": "task",
       "path": "docs/tasks/dragonscale-agentic-wiki-followups.md",
-      "status": "todo",
+      "status": "verified",
       "depends_on": [
         "adr-0004"
       ],
@@ -40,7 +40,7 @@
       "id": "adr-0005",
       "type": "adr",
       "path": "docs/adr/0005-skill-home-open-issues-commands.md",
-      "status": "todo",
+      "status": "verified",
       "depends_on": [],
       "parallel_safe": true,
       "answers": [

@@ -1,7 +1,7 @@
 ---
 artifact: adr
 number: 0005
-status: proposed     # proposed | accepted | superseded-by:NNNN
+status: accepted     # proposed | accepted | superseded-by:NNNN
 manifest: docs/manifests/dragonscale-agentic-wiki-followups.json
 ---
 
@@ -10,7 +10,7 @@ manifest: docs/manifests/dragonscale-agentic-wiki-followups.json
 > **Anchors (7 W):** Why (context + consequences) · What (the decision) · With-what (alternatives)
 
 ## Status
-proposed   <!-- accepted (YYYY-MM-DD) | superseded by ADR-NNNN -->
+accepted (2026-07-01)   <!-- superseded by ADR-NNNN if revisited -->
 
 ## Context  ‹Why›
 
