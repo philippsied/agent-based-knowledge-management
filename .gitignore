@@ -128,3 +128,9 @@ evals/results/
 .vault-meta/address-counter.txt
 .vault-meta/legacy-pages.txt
 .vault-meta/config.json
+
+# Obsidian editor/workspace state (vault-local, not shipped with the plugin)
+.obsidian/
+
+# Session handoff docs (local process artifacts)
+.handoff/
