@@ -8,7 +8,7 @@
       "id": "adr-0004",
       "type": "adr",
       "path": "docs/adr/0004-canonical-address-counter-start.md",
-      "status": "todo",
+      "status": "verified",
       "depends_on": [],
       "parallel_safe": true,
       "answers": [
