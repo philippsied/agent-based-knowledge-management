@@ -1,0 +1,40 @@
+{
+  "slug": "dragonscale-agentic-wiki-followups",
+  "title": "DragonScale & Agentic Wiki follow-ups",
+  "created": "2026-07-01",
+  "scope": {},
+  "artifacts": [
+    {
+      "id": "adr-0004",
+      "type": "adr",
+      "path": "docs/adr/0004-canonical-address-counter-start.md",
+      "status": "todo",
+      "depends_on": [],
+      "parallel_safe": true,
+      "answers": [
+        "warum",
+        "was",
+        "womit"
+      ],
+      "verify": "Owner ratifies status: accepted",
+      "session": null
+    },
+    {
+      "id": "fup-2",
+      "type": "task",
+      "path": "docs/tasks/dragonscale-agentic-wiki-followups.md",
+      "status": "todo",
+      "depends_on": [
+        "adr-0004"
+      ],
+      "parallel_safe": false,
+      "answers": [
+        "was",
+        "wie",
+        "done"
+      ],
+      "verify": "test: first allocation is c-000001; setup-vault seeds 1",
+      "session": null
+    }
+  ]
+}

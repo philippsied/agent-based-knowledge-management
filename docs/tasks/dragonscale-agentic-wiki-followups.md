@@ -8,7 +8,7 @@ created: 2026-07-01
 
 # Follow-up Tasks — DragonScale & Agentic Wiki PRDs
 
-Consolidated tracker for the open items surfaced while authoring [DragonScale PRD](../prds/dragonscale.md) and [Agentic Wiki PRD](../prds/agentic-wiki.md) (2026-07-01 docs audit + platform inventory). These are **recorded, not executed** — most need script/config edits that were deliberately deferred (the audit round was docs-only). Decisions are split from the fixes they gate, so the dependency graph is explicit.
+Consolidated tracker for the open items surfaced while authoring [DragonScale PRD](../prds/dragonscale.md) and [Agentic Wiki PRD](../prds/agentic-wiki.md) (2026-07-01 docs audit + platform inventory). These are **recorded, not executed** — most need script/config edits that were deliberately deferred (the audit round was docs-only). Decisions are split from the fixes they gate, so the dependency graph is explicit. Scaffolded decisions are tracked in the decide-next manifest [docs/manifests/dragonscale-agentic-wiki-followups.json](../manifests/dragonscale-agentic-wiki-followups.json); FUP-1 is now scaffolded as [ADR-0004](../adr/0004-canonical-address-counter-start.md) (proposed).
 
 ## Label taxonomy
 
@@ -30,7 +30,7 @@ Surface = where the change lands: `code` · `doc` · `config` · `decision`.
 
 | ID | Task | Labels | Surface | Source | Prio | Depends on | Acceptance |
 |---|---|---|---|---|---|---|---|
-| **FUP-1** | Decide canonical address-counter start value (`0` vs `1`) | `decision` | decision | DS PRD §7 | P1 | — | ADR/manifest note fixes the canonical start with rationale. |
+| **FUP-1** | Decide canonical address-counter start value (`0` vs `1`) → **[ADR-0004](../adr/0004-canonical-address-counter-start.md)** (proposed: canonical = `1`) | `decision` | decision | DS PRD §7 | P1 | — | ADR-0004 ratified by owner (status → accepted). |
 | **FUP-2** | Align counter seed across `bin/setup-vault.py` (`0`) & `bin/setup-dragonscale.py` (`1`) | `bugfix` `config` | code | DS PRD §7 / R3 | P1 | FUP-1 | Both scripts seed the agreed value; a test asserts it; guide + PRD updated. |
 | **FUP-3** | Decide skill-home for substantive `wiki/` subcommands (`fix-issues`, `handoff`) | `decision` `concept` | decision | Wiki PRD §7 / ADR-0001 | P1 | — | ADR/spec names the target (e.g. fold into `wiki-lint` vs new skill). |
 | **FUP-4** | Execute ADR-0001: delete 5 thin-wrapper commands, rehome the 2 substantive ones | `feature` `maintenance` | code+doc | Wiki PRD §7 | P1 | FUP-3 | Wrapper commands removed; subcommands rehomed; docs updated; CI green. Tracks the existing `cmd-script-consolidation` specs/plans. |
