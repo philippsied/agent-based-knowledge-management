@@ -35,6 +35,38 @@
       ],
       "verify": "test: first allocation is c-000001; setup-vault seeds 1",
       "session": null
+    },
+    {
+      "id": "adr-0005",
+      "type": "adr",
+      "path": "docs/adr/0005-skill-home-open-issues-commands.md",
+      "status": "todo",
+      "depends_on": [],
+      "parallel_safe": true,
+      "answers": [
+        "warum",
+        "was",
+        "womit"
+      ],
+      "verify": "Owner ratifies status: accepted",
+      "session": null
+    },
+    {
+      "id": "fup-4",
+      "type": "task",
+      "path": "docs/tasks/dragonscale-agentic-wiki-followups.md",
+      "status": "todo",
+      "depends_on": [
+        "adr-0005"
+      ],
+      "parallel_safe": false,
+      "answers": [
+        "was",
+        "wie",
+        "done"
+      ],
+      "verify": "wiki-issues skill created w/ coverage matrix; 7 command files deleted; docs updated; CI green",
+      "session": null
     }
   ]
 }
