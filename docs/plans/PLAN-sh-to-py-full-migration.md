@@ -394,7 +394,7 @@ Each repoint lists the **new `.py` invocation form**. Total `.sh` reference surf
 
 ## 4. Dependency-ordered phases
 
-> **Progress (resume marker):** P0 ✅ done (commit `2c8ed48`) · P1 ✅ done (commit `666b196`) — gates green: `make test`, 183 run-lint checks, byte-identical report, stale-ref scan clean. **P2–P6 pending.** Carry-over for P3: `bin/release.sh` still pipes `jq -e '.error_count == 0'` against a key that never existed in the JSON (CI correctly uses `.totals.error`); the `release.py` port should fix the key and drop `jq`.
+> **Progress (resume marker):** P0–P6 ✅ **DONE** — full `.sh`→`.py` migration complete; `git ls-files '*.sh'` empty. Landed on `main` via merge `0b92a96` (feature commit `11d5d12`; earlier P0 `2c8ed48`, P1 `666b196`). Gates green: `make test`, 183 run-lint checks, hook 47/47 parity, marketplace byte-stable, no `jq` in shipped code/CI, stale-ref scan clean. P3 carry-over resolved: `release.py` reads `.totals.error` and dropped `jq`. Security fix in P6: hook symlink fail-open (resolved-root vs unresolved candidate) closed by canonicalizing the candidate path; regression-tested S1–S4.
 
 Topologically ordered so nothing breaks mid-flight. Each phase = one coherent commit (conventional format).
 **`lib/vault_root.sh` is deleted LAST** (Phase 6), only after its three shell sourcers are Python.

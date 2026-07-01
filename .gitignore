@@ -127,3 +127,4 @@ evals/results/
 !/.raw/.gitkeep
 .vault-meta/address-counter.txt
 .vault-meta/legacy-pages.txt
+.vault-meta/config.json
