@@ -2,7 +2,7 @@
 
 DragonScale Memory is an optional extension for `agentic-knowledge-management`. It adds conservative helpers for log rollups, stable page addresses, duplicate-page linting, and frontier topic suggestion. Start with [docs/install-guide.md](./install-guide.md). For the design spec and rationale, read [wiki/concepts/DragonScale Memory.md](../wiki/concepts/DragonScale%20Memory.md).
 
-This page stays close to shipped behavior in `v1.6.0`. It explains what setup creates, what each mechanism actually does, what it needs, and how to turn it off safely without uninstalling the repo.
+This page stays close to shipped behavior in `v1.6.0` (behavior verified unchanged through v1.10.1). It explains what setup creates, what each mechanism actually does, what it needs, and how to turn it off safely without uninstalling the repo.
 
 ## What DragonScale Is
 
@@ -50,19 +50,19 @@ python3 bin/setup-dragonscale.py /path/to/vault
 
 If you omit the path, it uses the repo root inferred from `bin/`.
 
-### Universal prerequisite: flock
+### Prerequisite for Mechanisms 2 & 3: file locking
 
-Both mechanisms guard their counter/cache with `fcntl.flock` from Python (the POSIX flock(2) syscall), so no util-linux `flock(1)` CLI is required and they work on macOS and Linux alike. Mechanism 2 guards `.vault-meta/.address.lock` in `scripts/allocate-address.py`; Mechanism 3 guards `.vault-meta/.tiling.lock` around cache I/O.
+Mechanisms 2 and 3 guard their counter/cache with `fcntl.flock` from Python (the POSIX flock(2) syscall), so no util-linux `flock(1)` CLI is required and they work on macOS and Linux alike. Mechanism 2 guards `.vault-meta/.address.lock` in `scripts/allocate-address.py`; Mechanism 3 guards `.vault-meta/.tiling.lock` around cache I/O. Mechanisms 1 and 4 take no lock.
+
+The only requirement is a working `python3` — its standard-library `fcntl` module provides the lock, so there is no separate CLI binary to install.
 
 Quick check:
 
 ```bash
-command -v flock
+python3 -c "import fcntl; print('fcntl OK')"
 ```
 
-If that prints nothing, install `flock` before relying on DragonScale. On Linux it is usually already present. On macOS it commonly comes from `util-linux`.
-
-If `flock` is missing, setup can still create files, but the address allocator and tiling cache path are not reliable. Treat that as a blocker.
+If that prints `fcntl OK`, the locking prerequisite is satisfied. `fcntl` ships with CPython on macOS and Linux, so this succeeds on any stock `python3`.
 
 ### Mechanism 3 extra prerequisites: python3, ollama, nomic-embed-text
 
@@ -491,17 +491,17 @@ When those conditions are not met, the repo falls back to earlier behavior. That
 
 ## Troubleshooting
 
-### Missing flock
+### Locking not available
 
-If `flock` is missing, fix that first. Symptoms can include an unsafe address-allocation path or a tiling cache path that cannot lock correctly.
+Locking uses Python's standard-library `fcntl`, not a CLI tool, so this is only a concern if `python3` itself is missing or broken. Symptoms would include an unsafe address-allocation path or a tiling cache path that cannot lock correctly.
 
 Check:
 
 ```bash
-command -v flock
+python3 -c "import fcntl; print('fcntl OK')"
 ```
 
-If it is absent, install the package that provides it for your system, then rerun:
+If that fails, repair your `python3` install (the `fcntl` module is part of the CPython standard library on macOS and Linux), then rerun:
 
 ```bash
 python3 bin/setup-dragonscale.py

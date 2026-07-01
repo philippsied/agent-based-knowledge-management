@@ -1,5 +1,8 @@
 # Upstream Roadmap: Deterministic Wiki-Quality Tooling
 
+> [!note] Superseded — historical planning doc (frozen 2026-05-26)
+> Most of this roadmap's tooling has since shipped: PR1 (lint aggregator) in v1.8.0, the path-safety hook (PR2) in v1.10.0, and the full sh→py migration through v1.10.1. For the authoritative current state see [CHANGELOG.md](../CHANGELOG.md). This doc is retained for design rationale; the `.sh` paths and pre-PR0 `file:line` references below reflect the state at time of writing, not current code.
+
 **Status:** approved — PR0 + PR1 merged; PR1.5 / PR2 unscheduled
 **Created:** 2026-05-21
 **Last review:** 2026-05-26 (decisions logged below)
@@ -33,7 +36,7 @@ stays on `main`; this section is the canonical pointer to current PR state.
 | **PR0** | merged | [#2](https://github.com/philippsied/agent-based-knowledge-management/pull/2) | `5b42d30` |
 | **PR1** | merged | [#3](https://github.com/philippsied/agent-based-knowledge-management/pull/3) | `a83bdf3` |
 | **PR1.5** | not started | — | — |
-| **PR2** | not started | — | — |
+| **PR2** | merged — shipped as `hooks/wiki-path-safety.py` (v1.10.0) | — | — |
 | **PR3a** | not started | — | — |
 | **PR3b** | not started | — | — |
 | **PR4** | not started | — | — |
@@ -103,7 +106,7 @@ definition of each tool.
 
 Today the plugin repo *is also* a vault, and several scripts assume it:
 
-- `scripts/tiling-check.py:49` → `VAULT_ROOT = Path(__file__).resolve().parent.parent`
+- `scripts/tiling-check.py:49` → `VAULT_ROOT = Path(__file__).resolve().parent.parent` *(pre-PR0 state; now resolver-based at `:53`, `VAULT_ROOT = resolve_vault_root()`)*
 - `scripts/lint-terminology.py:222`, `scripts/lint-title-overlap.py:74` →
   `parser.add_argument("root", nargs="?", default="wiki")` (cwd-relative)
 
