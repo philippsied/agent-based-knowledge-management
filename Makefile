@@ -1,7 +1,7 @@
 # agentic-knowledge-management Makefile
 # Test runner entry points for DragonScale, lint tooling, and the vault-root resolver.
 
-.PHONY: test test-address test-tiling test-boundary test-vault-root test-terminology test-title-overlap test-lint-orphans test-run-lint test-sync-versions test-wiki-path-safety lint sync-versions release setup-dragonscale clean clean-test-state help
+.PHONY: test test-address test-tiling test-boundary test-vault-root test-terminology test-title-overlap test-lint-orphans test-run-lint test-sync-versions test-wiki-path-safety test-setup-provisioning lint sync-versions release setup-dragonscale clean clean-test-state help
 
 help:
 	@echo "agentic-knowledge-management developer targets:"
@@ -18,11 +18,12 @@ help:
 	@echo "  make test-lint-orphans     scripts/lint-orphans.py tests"
 	@echo "  make test-run-lint         scripts/run-lint.py aggregator tests (python)"
 	@echo "  make test-sync-versions    bin/sync-versions.py tests"
+	@echo "  make test-setup-provisioning  bin/setup-*.py counter-seeding guard (FUP-2)"
 	@echo "  make setup-dragonscale     Run bin/setup-dragonscale.py against this vault"
 	@echo "  make clean                 Remove local Python caches and .DS_Store"
 	@echo "  make clean-test-state      Remove runtime lockfiles and tiling cache"
 
-test: test-vault-root test-address test-tiling test-boundary test-terminology test-title-overlap test-lint-orphans test-run-lint test-sync-versions test-wiki-path-safety
+test: test-vault-root test-address test-tiling test-boundary test-terminology test-title-overlap test-lint-orphans test-run-lint test-sync-versions test-wiki-path-safety test-setup-provisioning
 	@echo ""
 	@echo "All tests passed."
 
@@ -68,6 +69,10 @@ test-sync-versions:
 test-wiki-path-safety:
 	@echo "=== test_wiki_path_safety.py ==="
 	@python3 tests/test_wiki_path_safety.py
+
+test-setup-provisioning:
+	@echo "=== test_setup_provisioning.py ==="
+	@python3 tests/test_setup_provisioning.py
 
 sync-versions:
 	@python3 bin/sync-versions.py
