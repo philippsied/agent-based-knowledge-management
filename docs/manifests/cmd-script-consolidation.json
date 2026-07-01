@@ -1,0 +1,356 @@
+{
+  "slug": "cmd-script-consolidation",
+  "title": "Commands->Skills-Integration + Skript-Konsolidierung",
+  "created": "2026-07-01",
+  "scope": {},
+  "artifacts": [
+    {
+      "id": "prd",
+      "type": "prd",
+      "path": "docs/prds/cmd-script-consolidation.md",
+      "status": "verified",
+      "depends_on": [],
+      "parallel_safe": true,
+      "answers": [
+        "warum",
+        "was",
+        "was-nicht",
+        "womit",
+        "done"
+      ],
+      "verify": "Erfolgsmetriken messbar + Non-Goals + Coverage-Ziel gesetzt",
+      "session": null
+    },
+    {
+      "id": "adr-0001",
+      "type": "adr",
+      "path": "docs/adr/0001-delete-commands-skills-only.md",
+      "status": "verified",
+      "depends_on": [
+        "prd"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "warum",
+        "was",
+        "womit"
+      ],
+      "verify": "Entscheidung 1 Satz + Alternativen + Konsequenzen",
+      "session": null
+    },
+    {
+      "id": "adr-0002",
+      "type": "adr",
+      "path": "docs/adr/0002-colocate-scripts-under-skill.md",
+      "status": "verified",
+      "depends_on": [
+        "prd"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "warum",
+        "was",
+        "womit"
+      ],
+      "verify": "Mapping-Prinzip + Alternativen + Konsequenzen",
+      "session": null
+    },
+    {
+      "id": "test-design",
+      "type": "test-design",
+      "path": "docs/test-designs/cmd-script-consolidation.md",
+      "status": "verified",
+      "depends_on": [
+        "prd"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "done",
+        "wie",
+        "womit"
+      ],
+      "verify": "Quality-Gate numerisch + Acceptance-Mapping vollstaendig",
+      "session": null
+    },
+    {
+      "id": "spec-commands",
+      "type": "spec",
+      "path": "docs/specs/SPEC-cmd-script-consolidation-commands.md",
+      "status": "verified",
+      "depends_on": [
+        "prd",
+        "adr-0001"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "was",
+        "wie",
+        "womit",
+        "done"
+      ],
+      "verify": "Coverage-Matrix verifiziert + Acceptance binaer",
+      "session": null
+    },
+    {
+      "id": "spec-lint",
+      "type": "spec",
+      "path": "docs/specs/SPEC-cmd-script-consolidation-lint.md",
+      "status": "verified",
+      "depends_on": [
+        "prd",
+        "adr-0002"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "wie",
+        "womit",
+        "done"
+      ],
+      "verify": "importlib-Pfade+Tests mitgezogen + Acceptance binaer",
+      "session": null
+    },
+    {
+      "id": "spec-dragonscale",
+      "type": "spec",
+      "path": "docs/specs/SPEC-cmd-script-consolidation-dragonscale.md",
+      "status": "verified",
+      "depends_on": [
+        "prd",
+        "adr-0002"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "wie",
+        "womit",
+        "done"
+      ],
+      "verify": "Ziel je Skript belegt + shared->lib entschieden",
+      "session": null
+    },
+    {
+      "id": "spec-ingest",
+      "type": "spec",
+      "path": "docs/specs/SPEC-cmd-script-consolidation-ingest.md",
+      "status": "verified",
+      "depends_on": [
+        "prd",
+        "adr-0002"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "wie",
+        "womit",
+        "done"
+      ],
+      "verify": "Referenzen + Acceptance binaer",
+      "session": null
+    },
+    {
+      "id": "spec-setup",
+      "type": "spec",
+      "path": "docs/specs/SPEC-cmd-script-consolidation-setup.md",
+      "status": "verified",
+      "depends_on": [
+        "prd",
+        "adr-0002"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "wie",
+        "womit",
+        "done"
+      ],
+      "verify": "Ownership entschieden + Aufrufer-Referenzen",
+      "session": null
+    },
+    {
+      "id": "plan-commands",
+      "type": "plan",
+      "path": "docs/plans/PLAN-cmd-script-consolidation-commands.md",
+      "status": "todo",
+      "depends_on": [
+        "spec-commands",
+        "test-design"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "wann",
+        "wie",
+        "done"
+      ],
+      "verify": "Schritt->Verify vollstaendig",
+      "session": null
+    },
+    {
+      "id": "plan-lint",
+      "type": "plan",
+      "path": "docs/plans/PLAN-cmd-script-consolidation-lint.md",
+      "status": "todo",
+      "depends_on": [
+        "spec-lint",
+        "test-design"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "wann",
+        "wie",
+        "done"
+      ],
+      "verify": "Schritt->Verify",
+      "session": null
+    },
+    {
+      "id": "plan-ingest",
+      "type": "plan",
+      "path": "docs/plans/PLAN-cmd-script-consolidation-ingest.md",
+      "status": "todo",
+      "depends_on": [
+        "spec-ingest",
+        "test-design"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "wann",
+        "wie",
+        "done"
+      ],
+      "verify": "Schritt->Verify",
+      "session": null
+    },
+    {
+      "id": "plan-setup",
+      "type": "plan",
+      "path": "docs/plans/PLAN-cmd-script-consolidation-setup.md",
+      "status": "todo",
+      "depends_on": [
+        "spec-setup",
+        "test-design"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "wann",
+        "wie",
+        "done"
+      ],
+      "verify": "Schritt->Verify",
+      "session": null
+    },
+    {
+      "id": "plan-dragonscale",
+      "type": "plan",
+      "path": "docs/plans/PLAN-cmd-script-consolidation-dragonscale.md",
+      "status": "todo",
+      "depends_on": [
+        "spec-dragonscale",
+        "test-design"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "wann",
+        "wie",
+        "done"
+      ],
+      "verify": "Schritt->Verify",
+      "session": null
+    },
+    {
+      "id": "tasks-commands",
+      "type": "task",
+      "path": "docs/tasks/cmd-script-consolidation-commands.md",
+      "status": "todo",
+      "depends_on": [
+        "plan-commands"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "was",
+        "done"
+      ],
+      "verify": "commands/ leer + Coverage-Matrix gruen + Tests gruen",
+      "session": null
+    },
+    {
+      "id": "tasks-lint",
+      "type": "task",
+      "path": "docs/tasks/cmd-script-consolidation-lint.md",
+      "status": "todo",
+      "depends_on": [
+        "plan-lint"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "was",
+        "done"
+      ],
+      "verify": "lint co-located + run-lint --json diff leer + Tests gruen",
+      "session": null
+    },
+    {
+      "id": "tasks-ingest",
+      "type": "task",
+      "path": "docs/tasks/cmd-script-consolidation-ingest.md",
+      "status": "todo",
+      "depends_on": [
+        "plan-ingest"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "was",
+        "done"
+      ],
+      "verify": "ingest co-located + Refs + Tests gruen",
+      "session": null
+    },
+    {
+      "id": "tasks-setup",
+      "type": "task",
+      "path": "docs/tasks/cmd-script-consolidation-setup.md",
+      "status": "todo",
+      "depends_on": [
+        "plan-setup"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "was",
+        "done"
+      ],
+      "verify": "setup verortet + Aufrufer aktualisiert + Smoke gruen",
+      "session": null
+    },
+    {
+      "id": "tasks-dragonscale",
+      "type": "task",
+      "path": "docs/tasks/cmd-script-consolidation-dragonscale.md",
+      "status": "todo",
+      "depends_on": [
+        "plan-dragonscale",
+        "tasks-lint",
+        "tasks-ingest"
+      ],
+      "parallel_safe": false,
+      "answers": [
+        "was",
+        "done"
+      ],
+      "verify": "dragonscale verortet + shared lib + Tests gruen",
+      "session": null
+    },
+    {
+      "id": "adr-0003",
+      "type": "adr",
+      "path": "docs/adr/0003-setup-cluster-stays-in-bin.md",
+      "status": "verified",
+      "depends_on": [
+        "prd"
+      ],
+      "parallel_safe": true,
+      "answers": [
+        "warum",
+        "was",
+        "womit"
+      ],
+      "verify": "Ausnahme dokumentiert + Alternativen",
+      "session": null
+    }
+  ]
+}
