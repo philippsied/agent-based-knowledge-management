@@ -167,7 +167,7 @@
       "id": "plan-commands",
       "type": "plan",
       "path": "docs/plans/PLAN-cmd-script-consolidation-commands.md",
-      "status": "todo",
+      "status": "verified",
       "depends_on": [
         "spec-commands",
         "test-design"
@@ -185,7 +185,7 @@
       "id": "plan-lint",
       "type": "plan",
       "path": "docs/plans/PLAN-cmd-script-consolidation-lint.md",
-      "status": "todo",
+      "status": "verified",
       "depends_on": [
         "spec-lint",
         "test-design"
@@ -203,7 +203,7 @@
       "id": "plan-ingest",
       "type": "plan",
       "path": "docs/plans/PLAN-cmd-script-consolidation-ingest.md",
-      "status": "todo",
+      "status": "verified",
       "depends_on": [
         "spec-ingest",
         "test-design"
@@ -221,7 +221,7 @@
       "id": "plan-setup",
       "type": "plan",
       "path": "docs/plans/PLAN-cmd-script-consolidation-setup.md",
-      "status": "todo",
+      "status": "verified",
       "depends_on": [
         "spec-setup",
         "test-design"
@@ -239,7 +239,7 @@
       "id": "plan-dragonscale",
       "type": "plan",
       "path": "docs/plans/PLAN-cmd-script-consolidation-dragonscale.md",
-      "status": "todo",
+      "status": "verified",
       "depends_on": [
         "spec-dragonscale",
         "test-design"

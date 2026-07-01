@@ -13,11 +13,11 @@ slug `cmd-script-consolidation` · created 2026-07-01 · _generated, edit the .j
 | spec-dragonscale | spec | verified | prd,adr-0002 | yes | — |
 | spec-ingest | spec | verified | prd,adr-0002 | yes | — |
 | spec-setup | spec | verified | prd,adr-0002 | yes | — |
-| plan-commands | plan | todo | spec-commands,test-design | yes | — |
-| plan-lint | plan | todo | spec-lint,test-design | yes | — |
-| plan-ingest | plan | todo | spec-ingest,test-design | yes | — |
-| plan-setup | plan | todo | spec-setup,test-design | yes | — |
-| plan-dragonscale | plan | todo | spec-dragonscale,test-design | yes | — |
+| plan-commands | plan | verified | spec-commands,test-design | yes | — |
+| plan-lint | plan | verified | spec-lint,test-design | yes | — |
+| plan-ingest | plan | verified | spec-ingest,test-design | yes | — |
+| plan-setup | plan | verified | spec-setup,test-design | yes | — |
+| plan-dragonscale | plan | verified | spec-dragonscale,test-design | yes | — |
 | tasks-commands | task | todo | plan-commands | yes | — |
 | tasks-lint | task | todo | plan-lint | yes | — |
 | tasks-ingest | task | todo | plan-ingest | yes | — |
@@ -26,9 +26,8 @@ slug `cmd-script-consolidation` · created 2026-07-01 · _generated, edit the .j
 | adr-0003 | adr | verified | prd | yes | — |
 
 ## Ready now
-- plan-commands -> docs/plans/PLAN-cmd-script-consolidation-commands.md
-- plan-lint -> docs/plans/PLAN-cmd-script-consolidation-lint.md
-- plan-ingest -> docs/plans/PLAN-cmd-script-consolidation-ingest.md
-- plan-setup -> docs/plans/PLAN-cmd-script-consolidation-setup.md
-- plan-dragonscale -> docs/plans/PLAN-cmd-script-consolidation-dragonscale.md
+- tasks-commands -> docs/tasks/cmd-script-consolidation-commands.md
+- tasks-lint -> docs/tasks/cmd-script-consolidation-lint.md
+- tasks-ingest -> docs/tasks/cmd-script-consolidation-ingest.md
+- tasks-setup -> docs/tasks/cmd-script-consolidation-setup.md
 

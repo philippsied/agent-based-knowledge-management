@@ -14,7 +14,7 @@ depends_on: [prd]
 
 ## Ebenen  ‹Wie›
 - **Unit:** verschobene `lint-*`/dragonscale-Module ladbar (importlib von neuem Pfad) + `collect*`/Adress-Fns identisch; `lib/`-Pfadtiefe korrekt (`from vault_root import …` lädt); `lib/dragonscale_pages.py` byte-identische Konstanten; `resolve_vault`-Präzedenz erhalten.
-- **Integration:** `run-lint.py --json` identischer Report gegen Fixture-Vault pre/post; bestehende `tests/` (10) + Evals (`autoresearch`, `research-brief`) grün; `tiling-check` ollama-Skip (Exit 10/11) erhalten; `allocate-address --peek` read-only aus `wiki-lint` funktioniert.
+- **Integration:** `run-lint.py --json` identischer Report gegen Fixture-Vault pre/post; bestehende Tests grün via `make test` (10 unittest-Targets, KEIN pytest) + Evals (`autoresearch`, `research-brief`); `tiling-check` ollama-Skip (Exit 10/11) erhalten; `allocate-address --peek` read-only aus `wiki-lint` funktioniert.
 - **Smoke:** jeder Skill lädt; `SKILL.md`-Referenzen resolven; verschobene Skripte per Basis-Aufruf lauffähig; `fd commands/` = 0; neuer Skill `wiki-issues` (push+pop) vorhanden; `bin/setup-*` idempotent gegen tmp-Vault.
 - **Security:** `hooks/wiki-path-safety.py` unverändert; zugehöriger Test grün; kein setup-Skript modifiziert path-safety.
 
@@ -35,7 +35,7 @@ depends_on: [prd]
 | 7 lint-Skripte unter `skills/wiki-lint/scripts/` | `fd lint-*.py skills/wiki-lint/scripts/` == 6 + run-lint | Smoke |
 | `run-lint --json` diff leer pre/post | Fixture-Vault diff | Integration |
 | `REPO_ROOT`/Sub-Linter `lib`-Pfadtiefe korrigiert | Modul-Import lädt ohne `ModuleNotFoundError` | Unit |
-| `tests/test_run_lint.py` + 3 lint-Tests grün mit neuen Pfaden | `pytest` | Integration |
+| `tests/test_run_lint.py` + 3 lint-Tests grün mit neuen Pfaden | `make test` | Integration |
 | Refs aktualisiert (Makefile, SKILL.md, release.py, evals/run.py) | `rg 'scripts/(run-lint\|lint-)'` alt == 0 | Smoke |
 
 ### dragonscale ([spec](../specs/SPEC-cmd-script-consolidation-dragonscale.md))
@@ -43,7 +43,7 @@ depends_on: [prd]
 |---|---|---|
 | boundary→autoresearch, tiling→wiki-lint, allocate→wiki-ingest verortet | `fd` je Zielordner | Smoke |
 | `lib/dragonscale_pages.py`: Konstanten+`log()` byte-identisch | Unit-Vergleich | Unit |
-| divergente Fns per-Skript ODER Superset mit beiden Suiten grün | `pytest test_boundary_score + test_tiling_check` | Unit |
+| divergente Fns per-Skript ODER Superset mit beiden Suiten grün | `make test-boundary test-tiling` | Unit |
 | `sys.path`-Tiefe korrigiert | Import lädt | Unit |
 | Konsumenten aktualisiert (SKILL.md, agents/, setup-dragonscale, Makefile, tests, docs) | `rg` alt-Pfade == 0 | Smoke |
 | `tiling-check` ollama Exit 10/11 = Skip erhalten | Integration (ohne ollama) | Integration |
@@ -55,7 +55,7 @@ depends_on: [prd]
 | beide Skripte unter `skills/wiki-ingest/scripts/` | `fd` | Smoke |
 | Referenzen aktualisiert (doc-layer; keine Skill-Pfad-Refs) | `rg` alt-Pfade == 0 | Smoke |
 | `resolve_vault`-Dedup erhält Präzedenz ODER per-Skript belassen | Unit (Präzedenz-Reihenfolge) | Unit |
-| volle `tests/` grün (Regressions-Check) | `pytest` | Integration |
+| volle Suite grün (Regressions-Check) | `make test` | Integration |
 
 ### setup ([spec](../specs/SPEC-cmd-script-consolidation-setup.md))
 | Acceptance-Criterion | Test | Ebene |
@@ -66,7 +66,7 @@ depends_on: [prd]
 | `hooks/wiki-path-safety.py` unberührt | Security-Test | Security |
 
 ## Quality-Gate (numerisch)  ‹Womit›
-- Bestehende Tests: **100 %** pass (10 Dateien in `tests/`).
+- Bestehende Tests: **100 %** pass via `make test` (10 unittest-Targets; pytest NICHT installiert).
 - Eval-Suites: **100 %** pass (2: autoresearch, research-brief).
 - Tote interne Pfad-Referenzen: **0** (nach Ausschluss Historie: CHANGELOG/releases + Vorhaben-Docs docs/prds|specs|test-designs|adr).
 - Verbleibende command-Dateien: **0**.
