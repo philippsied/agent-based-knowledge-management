@@ -31,9 +31,11 @@ python3 bin/setup-multi-agent.py
 | `wiki-query` | query, what do you know about, query quick:, query deep: |
 | `wiki-lint` | lint the wiki, health check, find orphans |
 | `wiki-fold` | fold the log, run a fold, log rollup (DragonScale Mechanism 1, opt-in) |
+| `wiki-issues` | handoff, fix issues, own the OPEN-ISSUES stack (push/pop) |
 | `save` | /save, file this conversation |
 | `autoresearch` | autoresearch, autonomous research loop (optional topic selection) |
 | `canvas` | /canvas, add to canvas, create canvas |
+| `visualize` | visualize this, make a deck, build an infographic, HTML export |
 | `defuddle` | clean this url, defuddle |
 | `doc-pipeline` | convert to markdown, doc pipeline, prepare documents for ingest |
 | `obsidian-markdown` | obsidian syntax, wikilink, callout |

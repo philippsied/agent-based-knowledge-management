@@ -113,6 +113,17 @@
       ],
       "verify": "ADR/PRD heading-language policy applied or waived per file; manifest token-mapping documented",
       "session": null
+    },
+    {
+      "id": "fup-5",
+      "type": "task",
+      "path": "docs/tasks/dragonscale-agentic-wiki-followups.md",
+      "status": "verified",
+      "depends_on": [],
+      "parallel_safe": true,
+      "answers": [],
+      "verify": "visualize shipped (tracked=15th skill); every count literal + enumeration table == tracked skills/*/SKILL.md set; tests/test_skill_count_ssot.py wired into make test; make test + run-lint green",
+      "session": null
     }
   ]
 }

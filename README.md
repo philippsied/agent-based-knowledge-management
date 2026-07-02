@@ -12,7 +12,7 @@
 
 Claude + Obsidian knowledge companion. A running notetaker that builds and maintains a persistent, compounding wiki vault. Every source you add gets integrated. Every question you ask pulls from everything that has been read. Knowledge compounds like interest.
 
-Based on [Andrej Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). **14 skills. Zero manual filing. Multi-agent support. Optional [DragonScale Memory](docs/dragonscale-guide.md) extension** (log folds, deterministic page addresses, semantic tiling lint, boundary-first autoresearch).
+Based on [Andrej Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). **15 skills. Zero manual filing. Multi-agent support. Optional [DragonScale Memory](docs/dragonscale-guide.md) extension** (log folds, deterministic page addresses, semantic tiling lint, boundary-first autoresearch).
 
 ---
 
@@ -130,6 +130,7 @@ Then scaffold the full wiki structure.
 | `/canvas add note [page]` | Pin a wiki page as a linked card on the canvas |
 | `/canvas zone [name]` | Add a new labeled zone to organize visual content |
 | `/canvas from banana` | Capture recently generated images onto the canvas |
+| `/visualize [page]` | Turn wiki knowledge into a self-contained HTML deck, infographic, or dashboard |
 | `lint the wiki` | Health check: orphans, dead links, gaps, suggestions |
 | `update hot cache` | Refresh hot.md with latest context summary |
 
@@ -326,7 +327,7 @@ agent-based-knowledge-management/
 ├── .claude-plugin/
 │   ├── plugin.json              # manifest
 │   └── marketplace.json         # distribution
-├── skills/                      # 14 skills (Agent Skills format)
+├── skills/                      # 15 skills (Agent Skills format)
 │   ├── wiki/                    # orchestrator + references (7 ref files)
 │   ├── wiki-ingest/             # INGEST operation (files, URLs, images)
 │   ├── wiki-query/              # QUERY operation (Quick / Standard / Deep)
@@ -344,7 +345,8 @@ agent-based-knowledge-management/
 │   ├── obsidian-bases/          # /obsidian-bases: native database-style views (.base files)
 │   ├── obsidian-markdown/       # /obsidian-markdown: wikilinks, callouts, embeds, properties
 │   ├── research-brief/          # /research-brief: construct or audit autoresearch briefs (W1-W12)
-│   └── wiki-issues/             # OPEN-ISSUES stack owner (push/pop + ported lint-open-issues validator)
+│   ├── wiki-issues/             # OPEN-ISSUES stack owner (push/pop + ported lint-open-issues validator)
+│   └── visualize/               # /visualize: self-contained HTML decks, infographics, dashboards
 ├── agents/
 │   ├── wiki-ingest.md           # parallel ingestion agent
 │   └── wiki-lint.md             # health check agent
@@ -418,6 +420,12 @@ claude plugin install AgriciDaniel/claude-canvas
 - [AI Marketing Hub](https://www.skool.com/ai-marketing-hub) - 2,800+ members, free community
 - [YouTube](https://www.youtube.com/@AgriciDaniel) - tutorials and demos
 - [All open-source tools](https://github.com/AgriciDaniel) - claude-seo, claude-ads, claude-blog, and more
+
+---
+
+## Credits
+
+- The **`visualize`** skill is adapted from **careerhackeralex**'s upstream skill (MIT, v0.3.0), re-scoped here as an external-format HTML export layer that complements the internal `canvas` skill.
 
 ---
 

@@ -59,6 +59,7 @@ Do NOT read the wiki for general coding questions or things already in this proj
 | `/save` | File the current conversation or insight as a structured wiki note |
 | `/autoresearch [topic]` | Autonomous research loop (search, fetch, synthesize, file) with optional topic selection |
 | `/canvas` | Visual layer: add images, text, PDFs, wiki pages to Obsidian canvas |
+| `/visualize` | Turn wiki pages/knowledge into self-contained HTML decks, infographics, dashboards |
 | `/defuddle` | Strip clutter from URLs before ingest (40-60% token savings) |
 | `/doc-pipeline` | Convert `.doc/.docx/.pdf/.pptx/.xlsx/...` into ingest-ready Markdown with QC gate |
 | `/obsidian-bases` | Create and edit Obsidian Bases (`.base`) database-style views |

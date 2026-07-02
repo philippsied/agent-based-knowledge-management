@@ -25,9 +25,11 @@ python3 bin/setup-multi-agent.py
 | `wiki-query` | Answers questions from the wiki with three depth modes |
 | `wiki-lint` | Health checks: orphans, dead links, stale claims, gaps |
 | `wiki-fold` | DragonScale Mechanism 1 — rollup of log entries into meta-pages |
+| `wiki-issues` | Owns the OPEN-ISSUES stack — pushes session insights as issues, pops and works the top ready one |
 | `save` | Files the current conversation as a wiki note |
 | `autoresearch` | Autonomous research loop: search → fetch → synthesize → file (optional topic selection) |
 | `canvas` | Creates and edits Obsidian canvas (.canvas) files |
+| `visualize` | Turns wiki knowledge into self-contained HTML — decks, infographics, dashboards, one-pagers |
 | `defuddle` | Cleans web pages before ingest (saves 40-60% tokens) |
 | `doc-pipeline` | Converts `.doc/.docx/.pdf/.pptx/.xlsx/...` into ingest-ready Markdown |
 | `obsidian-markdown` | Obsidian Flavored Markdown syntax reference |
