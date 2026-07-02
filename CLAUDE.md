@@ -55,6 +55,7 @@ Do NOT read the wiki for general coding questions or things already in this proj
 | `/wiki-query` (or `query: [question]`) | Answer questions from wiki content (Quick / Standard / Deep modes) |
 | `/wiki-lint` (or `lint the wiki`) | Health check: orphans, dead links, gaps, stale claims |
 | `/wiki-fold` | DragonScale Mechanism 1 — rollup of log entries into meta-pages |
+| `/wiki-issues` (or "handoff" / "fix issues") | Own the `wiki/meta/OPEN-ISSUES.md` stack — push session insights as issues, or pop-and-work the top ready issue |
 | `/save` | File the current conversation or insight as a structured wiki note |
 | `/autoresearch [topic]` | Autonomous research loop (search, fetch, synthesize, file) with optional topic selection |
 | `/canvas` | Visual layer: add images, text, PDFs, wiki pages to Obsidian canvas |

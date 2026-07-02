@@ -12,7 +12,7 @@
 
 Claude + Obsidian knowledge companion. A running notetaker that builds and maintains a persistent, compounding wiki vault. Every source you add gets integrated. Every question you ask pulls from everything that has been read. Knowledge compounds like interest.
 
-Based on [Andrej Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). **13 skills. Zero manual filing. Multi-agent support. Optional [DragonScale Memory](docs/dragonscale-guide.md) extension** (log folds, deterministic page addresses, semantic tiling lint, boundary-first autoresearch).
+Based on [Andrej Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). **14 skills. Zero manual filing. Multi-agent support. Optional [DragonScale Memory](docs/dragonscale-guide.md) extension** (log folds, deterministic page addresses, semantic tiling lint, boundary-first autoresearch).
 
 ---
 
@@ -326,7 +326,7 @@ agent-based-knowledge-management/
 ├── .claude-plugin/
 │   ├── plugin.json              # manifest
 │   └── marketplace.json         # distribution
-├── skills/                      # 13 skills (Agent Skills format)
+├── skills/                      # 14 skills (Agent Skills format)
 │   ├── wiki/                    # orchestrator + references (7 ref files)
 │   ├── wiki-ingest/             # INGEST operation (files, URLs, images)
 │   ├── wiki-query/              # QUERY operation (Quick / Standard / Deep)
@@ -343,15 +343,11 @@ agent-based-knowledge-management/
 │   ├── doc-pipeline/            # /doc-pipeline: .doc/.docx/.pdf/.pptx/... → ingest-ready Markdown
 │   ├── obsidian-bases/          # /obsidian-bases: native database-style views (.base files)
 │   ├── obsidian-markdown/       # /obsidian-markdown: wikilinks, callouts, embeds, properties
-│   └── research-brief/          # /research-brief: construct or audit autoresearch briefs (W1-W12)
+│   ├── research-brief/          # /research-brief: construct or audit autoresearch briefs (W1-W12)
+│   └── wiki-issues/             # OPEN-ISSUES stack owner (push/pop + ported lint-open-issues validator)
 ├── agents/
 │   ├── wiki-ingest.md           # parallel ingestion agent
 │   └── wiki-lint.md             # health check agent
-├── commands/
-│   ├── wiki.md                  # /wiki bootstrap command
-│   ├── save.md                  # /save command
-│   ├── autoresearch.md          # /autoresearch command
-│   └── canvas.md                # /canvas visual layer command
 ├── hooks/
 │   └── hooks.json               # SessionStart + Stop hot cache hooks
 ├── _templates/                  # Obsidian Templater templates
