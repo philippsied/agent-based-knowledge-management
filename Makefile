@@ -1,7 +1,7 @@
 # agentic-knowledge-management Makefile
 # Test runner entry points for DragonScale, lint tooling, and the vault-root resolver.
 
-.PHONY: test test-address test-tiling test-boundary test-vault-root test-terminology test-title-overlap test-lint-orphans test-run-lint test-sync-versions test-wiki-path-safety test-setup-provisioning lint sync-versions release setup-dragonscale clean clean-test-state help
+.PHONY: test test-address test-tiling test-boundary test-vault-root test-terminology test-title-overlap test-lint-orphans test-run-lint test-open-issues test-sync-versions test-wiki-path-safety test-setup-provisioning lint sync-versions release setup-dragonscale clean clean-test-state help
 
 help:
 	@echo "agentic-knowledge-management developer targets:"
@@ -17,13 +17,14 @@ help:
 	@echo "  make test-title-overlap    scripts/lint-title-overlap.py tests"
 	@echo "  make test-lint-orphans     scripts/lint-orphans.py tests"
 	@echo "  make test-run-lint         scripts/run-lint.py aggregator tests (python)"
+	@echo "  make test-open-issues      skills/wiki-issues/scripts/lint-open-issues.py tests"
 	@echo "  make test-sync-versions    bin/sync-versions.py tests"
 	@echo "  make test-setup-provisioning  bin/setup-*.py counter-seeding guard (FUP-2)"
 	@echo "  make setup-dragonscale     Run bin/setup-dragonscale.py against this vault"
 	@echo "  make clean                 Remove local Python caches and .DS_Store"
 	@echo "  make clean-test-state      Remove runtime lockfiles and tiling cache"
 
-test: test-vault-root test-address test-tiling test-boundary test-terminology test-title-overlap test-lint-orphans test-run-lint test-sync-versions test-wiki-path-safety test-setup-provisioning
+test: test-vault-root test-address test-tiling test-boundary test-terminology test-title-overlap test-lint-orphans test-run-lint test-open-issues test-sync-versions test-wiki-path-safety test-setup-provisioning
 	@echo ""
 	@echo "All tests passed."
 
@@ -61,6 +62,10 @@ test-lint-orphans:
 test-run-lint:
 	@echo "=== test_run_lint.py ==="
 	@python3 tests/test_run_lint.py
+
+test-open-issues:
+	@echo "=== test_open_issues.py ==="
+	@python3 tests/test_open_issues.py
 
 test-sync-versions:
 	@echo "=== test_sync_versions.py ==="
