@@ -72,6 +72,7 @@ The Agentic Wiki turns Claude + Obsidian into a **persistent, compounding knowle
 - **R12 Regression evals.** `evals/run.py` (+ `score-summary.py`) is a guardrail over `ingest` / `lint` / `query` case folders — a regression tripwire, not a benchmark.
 - **R13 Optional MCP.** Direct vault read/write via MCP is documented (`skills/wiki/references/mcp-setup.md`, four options) but not shipped; the platform must not depend on it.
 - **R14 Multi-agent install.** `bin/setup-multi-agent.py` installs the skill set for multi-agent use.
+- **R15 Command-deletion migration path.** When ADR-0001's command deletion is executed, ship a user-facing migration path: a CHANGELOG/release-note deprecation of the removed commands plus equivalent invocation via the `wiki-issues` skill (the plugin is released, `v1.10.1`, so the breaking change must be signposted). Tracked as an FUP-4 deliverable (audit V-3).
 
 ## 6. Constraints & Assumptions  ‹With-what›
 
