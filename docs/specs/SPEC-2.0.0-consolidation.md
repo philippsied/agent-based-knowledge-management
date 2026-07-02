@@ -1,6 +1,6 @@
 ---
 title: SPEC — Repo consolidation to 2.0.0 (Claude-only, no history migration)
-status: G1 GREEN — S1–S3 done (4 multi-agent surfaces removed, guard repointed to Claude-only, README claim-free, `make test` exit 0); awaiting go for G2
+status: G2 GREEN — S1–S5 done (multi-agent removed + guard repointed; release lint-gate scoped to distribution + regression test; CHANGELOG [2.0.0]; `make test` exit 0; no tag); awaiting go for G3
 repo: /Users/philipp/AI-powered_workbench/agent-based-knowledge-management
 base_commit: 2d8daca
 branch: main
@@ -59,10 +59,15 @@ Extract every content block UNIQUE to `AGENTS.md` / `GEMINI.md` / `.github/copil
 - **AC3:** `python scripts/run-lint.py` exits 0 (or documented working-vault-only residual, unchanged from baseline).
 
 ### S4 — Scope the release lint gate to distributed paths  (dep: none)
-- **AC1:** `bin/release.py` lint gate computes `totals.error` over DISTRIBUTED paths only (excludes working-vault `wiki/`); mechanism documented in an inline comment.
-- **AC2 (positive):** on the current tree, the gate step evaluates `error == 0` (instrumented/dry run shows PASS).
-- **AC3 (negative):** injecting one lint error into a DISTRIBUTED file (e.g. a `skills/*/SKILL.md`) makes the gate report `error > 0`; error reverted afterward. (Proves the gate still bites — detection≠verdict.)
-- **AC4:** `git tag -l v2.0.0` is empty (no tag cut).
+> **Evidence correction (2026-07-02):** `scripts/run-lint.py` is a WORKING-VAULT linter
+> (scans `wiki/`, exits 0 even on findings), NOT a distribution linter — it scans zero
+> shipped files. So "scope to distribution" = exclude its findings from the gate; the
+> gate blocks only when run-lint itself cannot run. The original AC3 ("inject error in a
+> distributed file") was based on a wrong assumption about run-lint's scope; reframed below.
+- **AC1:** `bin/release.py` gate excludes working-vault findings (distribution scope = 0 run-lint files); mechanism documented in the `lint_gate()` docstring. ✓
+- **AC2 (positive):** current tree (182 vault findings) → gate PASSES. ✓ (`tests/test_release_gate.py`)
+- **AC3 (negative, reframed):** the gate still BLOCKS when run-lint cannot run (rc≠0 / unparseable JSON / missing totals). ✓ (3 block-cases in `tests/test_release_gate.py`)
+- **AC4:** `git tag -l v2.0.0` empty (no tag cut). ✓
 
 ### S5 — Finalize CHANGELOG for 2.0.0  (dep: none)
 - **AC1:** `## [2.0.0] - 2026-07-02` is the top RELEASED section.

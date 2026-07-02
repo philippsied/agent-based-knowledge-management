@@ -26,6 +26,29 @@ MARKETPLACE_JSON = REPO_ROOT / ".claude-plugin" / "marketplace.json"
 CHANGELOG = REPO_ROOT / "CHANGELOG.md"
 
 
+def lint_gate(returncode, stdout):
+    """Release lint gate, scoped to the plugin DISTRIBUTION.
+
+    `scripts/run-lint.py` lints the working Obsidian vault (`wiki/`), which is NOT
+    part of the shipped plugin (skills/, hooks/, .claude-plugin/, docs, README). Its
+    severity findings are demo-content quality, never a release blocker — so the gate
+    excludes them: the distribution contains zero run-lint-scanned files, hence its
+    distribution-scoped error count is 0 by construction. Distribution correctness is
+    gated by `make test` (skill-count SSOT, version sync, vault-root, …) in pre-flight.
+
+    Returns an exit code (int) to BLOCK the release, or None to pass. The gate blocks
+    only when run-lint itself cannot run (non-zero exit / unparseable JSON) — a broken
+    linter, not vault content.
+    """
+    if returncode != 0:
+        return 4
+    try:
+        json.loads(stdout)["totals"]
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return 4
+    return None
+
+
 def main(argv):
     version = argv[1] if len(argv) > 1 else ""
     if not version:
@@ -44,22 +67,21 @@ def main(argv):
     print("Running tests...")
     subprocess.run(["make", "test"], cwd=REPO_ROOT, check=True)
 
-    print("Running lint...")
+    print("Running lint (advisory — working-vault health)...")
     proc = subprocess.run(
         [sys.executable, "scripts/run-lint.py", "--json"],
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,
     )
-    try:
-        error_count = json.loads(proc.stdout)["totals"]["error"]
-    except (json.JSONDecodeError, KeyError, TypeError):
-        error_count = None
-    if proc.returncode != 0 or error_count != 0:
-        print("Lint errors present")
+    blocked = lint_gate(proc.returncode, proc.stdout)
+    if blocked is not None:
+        print("run-lint could not run — the release gate blocks on a broken linter, "
+              "not on working-vault findings")
         if proc.stderr.strip():
             sys.stderr.write(proc.stderr)
-        return 4
+        return blocked
+    print(f"  vault lint (advisory, not a release blocker): {json.loads(proc.stdout)['totals']}")
 
     # CHANGELOG check
     changelog_text = CHANGELOG.read_text()
