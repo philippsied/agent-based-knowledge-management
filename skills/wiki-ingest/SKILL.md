@@ -390,7 +390,7 @@ On a page rename, the skill must update the `address_map` key (old path -> new p
 ### Concurrency policy
 
 - **Single-writer only** in Phase 2. Do not run parallel ingests from multiple Claude sessions or sub-agents that assign addresses. The `flock` in the helper prevents counter corruption but does not serialize page writes themselves.
-- Sub-agents (codex, general-purpose) that are dispatched for research or review MUST NOT call the allocator. They are read-only in this respect.
+- Sub-agents (e.g. general-purpose) that are dispatched for research or review MUST NOT call the allocator. They are read-only in this respect.
 - Multi-writer support is a deferred feature.
 
 ### Batch ingest

@@ -66,6 +66,19 @@ Do NOT read the wiki for general coding questions or things already in this proj
 | `/obsidian-markdown` | Obsidian-flavored Markdown / wikilink / callout helpers |
 | `/research-brief` | Construct or audit autoresearch briefs against W1-W12 conventions |
 
+## Conventions & Editing
+
+Single entry point to where each editing convention authoritatively lives (SSOT — do not duplicate here):
+
+| When you edit… | Follow the convention in… |
+|---|---|
+| Vault pages (frontmatter, wikilinks, `YYYY-MM-DD` dates, `.raw/` immutability, `wiki/log.md` append-only, `wiki/hot.md` overwrite-at-session-end) | `references/operational-rules/workflow.md` |
+| Agent behavior / operating principles | `references/operational-rules/agent-principles.md` |
+| Custom callouts (`[!contradiction]`, `[!gap]`, `[!key-insight]`, `[!stale]`) | `skills/obsidian-markdown/SKILL.md` + `skills/wiki/references/css-snippets.md` |
+| A skill (`skills/<name>/SKILL.md`; frontmatter = `name` + `description`) | `skills/obsidian-markdown/SKILL.md` |
+| Hooks (`hooks/hooks.json`; valid events: SessionStart, Stop, PreToolUse, PostToolUse, PreCompact, PostCompact, UserPromptSubmit) | `hooks/hooks.json` (SSOT) |
+| Anything advertising the skill count | `tests/test_skill_count_ssot.py` guards the tracked `skills/*/SKILL.md` set |
+
 ## MCP (Optional)
 
 If you configured the MCP server, Claude can read and write vault notes directly.

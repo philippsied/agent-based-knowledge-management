@@ -5,18 +5,19 @@ Drift guard for the plugin's advertised skill inventory. The **single source of
 truth** is the set of git-tracked `skills/*/SKILL.md` directories: a shipped plugin
 ships what is committed, so "tracked" (not "on-disk") is the canonical denominator.
 Every human-facing count literal and every skill enumeration table/list must equal
-that set. Before this guard, the count drifted silently across README / copilot /
-PRD / AGENTS / GEMINI (e.g. 13 vs 14 vs 15, and AGENTS/GEMINI missing whole skills).
+that set. Before this guard, the count drifted silently across the plugin's surfaces
+(e.g. 13 vs 14 vs 15, and enumeration tables missing whole skills).
 
-Four assertions, all against the *tracked* set C (|C| = N):
+This plugin is Claude-only — the AGENTS.md / GEMINI.md / copilot surfaces were removed
+in the 2.0.0 consolidation; the guarded surfaces are the Claude + distribution set.
+
+Three assertions, all against the *tracked* set C (|C| = N):
 
 - **SSOT:** N = number of tracked `skills/*/SKILL.md` (via `git ls-files`).
-- **G2 numeric literals:** every `<digits> skill(s)` phrase in README.md,
-  .github/copilot-instructions.md, and docs/prds/agentic-wiki.md equals N.
-- **G3 enumeration tables:** the skill-name row set of the "Skill" table in
-  CLAUDE.md, AGENTS.md, and GEMINI.md each equals C.
-- **G4 copilot name-list:** the backtick skill-names in copilot's `skills/:` line
-  equal C.
+- **G2 numeric literals:** every `<digits> skill(s)` phrase in README.md and
+  docs/prds/agentic-wiki.md equals N.
+- **G3 enumeration table:** the skill-name row set of the "Skill" table in
+  CLAUDE.md equals C.
 
 Prose "friendly-name" lists (README narrative, PRD `(N skills): ingest, query, …`)
 are intentionally NOT membership-checked — they use display names, not dir slugs —
@@ -39,15 +40,11 @@ ROOT = Path(__file__).resolve().parent.parent
 # counts do not trip the guard.
 NUMERIC_SURFACES = [
     "README.md",
-    ".github/copilot-instructions.md",
     "docs/prds/agentic-wiki.md",
 ]
 
 # Files whose "Skill" enumeration table must list exactly the canonical set (G3).
-TABLE_SURFACES = ["CLAUDE.md", "AGENTS.md", "GEMINI.md"]
-
-# Copilot carries an inline backtick name-list in its `skills/:` line (G4).
-COPILOT = ".github/copilot-instructions.md"
+TABLE_SURFACES = ["CLAUDE.md"]
 
 PASS = 0
 
@@ -130,15 +127,6 @@ def table_skill_names(rel):
     return names
 
 
-def copilot_list_names():
-    """Backtick skill-names inside copilot's `… N skills (`a`, `b`, …)` parenthetical (G4)."""
-    text = read(COPILOT)
-    m = re.search(r"skills \((.*?)\)", text, re.DOTALL)
-    if not m:
-        _fail(f"could not find the `N skills (…)` name-list in {COPILOT}")
-    return set(re.findall(r"`([a-z][a-z0-9-]+)`", m.group(1)))
-
-
 def main():
     canonical = tracked_skill_set()
     n = len(canonical)
@@ -163,14 +151,6 @@ def main():
             extra = sorted(names - canonical)
             _fail(f"{rel} skills table drift — missing={missing} extra={extra}")
         _ok(f"{rel}: skills table lists exactly the {n} canonical skills")
-
-    # G4 — copilot inline name-list == canonical set
-    names = copilot_list_names()
-    if names != canonical:
-        missing = sorted(canonical - names)
-        extra = sorted(names - canonical)
-        _fail(f"{COPILOT} inline list drift — missing={missing} extra={extra}")
-    _ok(f"{COPILOT}: inline name-list matches the {n} canonical skills")
 
     print(f"\nAll {PASS} skill-count SSOT checks passed (N={n}).")
 

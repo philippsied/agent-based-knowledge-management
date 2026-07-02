@@ -12,7 +12,7 @@
 
 Claude + Obsidian knowledge companion. A running notetaker that builds and maintains a persistent, compounding wiki vault. Every source you add gets integrated. Every question you ask pulls from everything that has been read. Knowledge compounds like interest.
 
-Based on [Andrej Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). **15 skills. Zero manual filing. Multi-agent support. Optional [DragonScale Memory](docs/dragonscale-guide.md) extension** (log folds, deterministic page addresses, semantic tiling lint, boundary-first autoresearch).
+Based on [Andrej Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). **15 skills. Zero manual filing. Optional [DragonScale Memory](docs/dragonscale-guide.md) extension** (log folds, deterministic page addresses, semantic tiling lint, boundary-first autoresearch).
 
 ---
 
@@ -48,7 +48,6 @@ Most Obsidian AI plugins are chat interfaces - they answer questions about your 
 | **Session memory** | Hot cache persists between conversations | No | No |
 | **Vault maintenance** | 8-category lint (orphans, dead links, gaps) | No | No |
 | **Autonomous research** | 3-round web research with gap-filling | No | No |
-| **Multi-model support** | Claude, Gemini, Codex, Cursor, Windsurf | Claude only | Multiple |
 | **Visual canvas** | Via [claude-canvas](https://github.com/AgriciDaniel/claude-canvas) companion | No | No |
 | **Query with citations** | Cites specific wiki pages | Cites similar notes | Cites notes |
 | **Batch ingestion** | Parallel agents for multiple sources | No | No |
