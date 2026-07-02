@@ -255,6 +255,7 @@ CHECK_ORDER = [
     "spaced_filenames", "spaced_wikilinks_body", "orphans",
     "dead_link_targets", "frontmatter_gaps", "terminology",
     "title_overlap", "research_queue_dag", "research_program_codes",
+    "open_issues",
 ]
 
 
@@ -264,12 +265,13 @@ def test_section4_schema():
 
     # B24 check_order_exact
     assert_eq("B24 check_order_exact", CHECK_ORDER, [c["name"] for c in checks])
-    # B25 all_nine_checks_present
-    assert_eq("B25 len(checks)==9", 9, len(checks))
+    # B25 all_checks_present (9 core + open_issues added by FUP-4)
+    assert_eq("B25 len(checks)==10", 10, len(checks))
     names = [c["name"] for c in checks]
-    assert_true("B25 dag+programs present",
+    assert_true("B25 dag+programs+open_issues present",
                 "research_queue_dag" in names
-                and "research_program_codes" in names)
+                and "research_program_codes" in names
+                and "open_issues" in names)
 
     # B26 top_level_value_types
     assert_true("B26 date is str", isinstance(summary["date"], str))
@@ -736,14 +738,14 @@ def test_section8_summary_table_all_checks():
         run_lint(v, "--quiet")
         date = datetime.date.today().isoformat()
         text = (v / "wiki" / "meta" / f"lint-report-{date}.md").read_text()
-        # one table row per check (9), shape | name | severity | count |
+        # one table row per check, shape | name | severity | count |
         rows = 0
         for c in CHECK_ORDER:
             for line in text.splitlines():
                 if line.startswith(f"| {c} |"):
                     rows += 1
                     break
-        assert_eq("B58 report_summary_table_all_checks", 9, rows)
+        assert_eq("B58 report_summary_table_all_checks", len(CHECK_ORDER), rows)
     finally:
         shutil.rmtree(v, ignore_errors=True)
 

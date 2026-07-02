@@ -55,7 +55,7 @@
       "id": "fup-4",
       "type": "task",
       "path": "docs/tasks/dragonscale-agentic-wiki-followups.md",
-      "status": "todo",
+      "status": "verified",
       "depends_on": [
         "adr-0005"
       ],

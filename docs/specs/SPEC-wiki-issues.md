@@ -9,7 +9,7 @@ depends_on: [adr-0005, adr-0001]
 # Spec — wiki-issues skill (OPEN-ISSUES stack owner)
 
 > WIE does a single `wiki-issues` skill own the `wiki/meta/OPEN-ISSUES.md` lifecycle (push + pop) deterministically? Realizes [ADR-0005](../adr/0005-skill-home-open-issues-commands.md); executes FUP-4 under [ADR-0001](../adr/0001-delete-commands-skills-only.md).
-> Reference shape: the battle-tested `ai-secondbrain` vault (`wiki/meta/OPEN-ISSUES.md` + `log.md`). Template: [docs/templates/open-issues.md](../templates/open-issues.md).
+> Reference shape: the battle-tested `ai-secondbrain` vault (`wiki/meta/OPEN-ISSUES.md` + `log.md`). Template: [skills/wiki-issues/references/open-issues-template.md](../../skills/wiki-issues/references/open-issues-template.md) (relocated from `docs/templates/` on FUP-4; 12-section whitelist, V-6).
 
 ## 1. Goal & Context  ‹What/Why → ADR-0005›
 

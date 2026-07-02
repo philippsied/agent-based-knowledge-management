@@ -4,6 +4,10 @@ All notable changes to agentic-knowledge-management. Format: [Keep a Changelog](
 
 ## [Unreleased]
 
+### Added
+
+- **`wiki-issues` skill — one owner for the `wiki/meta/OPEN-ISSUES.md` issue stack (ADR-0005).** Absorbs the former `/wiki:handoff` (push: synthesize session todos/insights into stack entries with fresh year-resetting `I-YYYY-NNN` ids) and `/wiki:fix-issues` (pop: verify and work exactly one ready top-of-stack issue, with resolved/stale/inconclusive/aggregation dispositions) as two sub-flows, plus stack init and a format-version guard. Ships a colocated validator (`skills/wiki-issues/scripts/lint-open-issues.py`: schema / stack↔body parity / `blocked_by` cycles / 4-key sort) wired into `run-lint.py` so `totals.error` gates it in CI. Section whitelist reconciled to 12 values (audit V-6).
+
 ### Changed
 
 - **Shell→Python migration (in progress).** The `run-lint` aggregator and the DragonScale address allocator are now pure Python (`scripts/run-lint.py`, `scripts/allocate-address.py`), invoked directly with no shell wrapper. `run-lint.py` additionally folds its six `lint-*.py` checks in-process (imported `collect*` entrypoints instead of `sys.executable` subprocesses), so the aggregate `--json` and Markdown report are produced with zero subprocess startup and stay byte-identical to the prior output. Each `lint-*.py` remains runnable standalone via its `__main__`. Vault root resolves via `lib/vault_root.py`. Tracked under `docs/plans/PLAN-sh-to-py-full-migration.md`.
@@ -16,6 +20,7 @@ All notable changes to agentic-knowledge-management. Format: [Keep a Changelog](
 
 - **`scripts/run-lint.sh` and `scripts/allocate-address.sh` removed.** The Python ports are now the direct entrypoints; `Makefile`, CI (`.github/workflows/test.yml`), `bin/release.sh`, `bin/setup-dragonscale.sh`, the `wiki-lint` / `wiki-ingest` skills + agents, and `docs/dragonscale-guide.md` were repointed to `.py`. Feature-detection guards switched from `[ -x …sh ]` to `[ -f …py ]` so a missing port disables the optional path rather than silently passing.
 - **`tests/test_run_lint.sh` retired** in favor of `tests/test_run_lint.py`. The shell test's top-level-key and seeded-finding assertions are a subset of the Python characterization suite (183 checks). `make test-run-lint` and CI now run `python3 tests/test_run_lint.py`.
+- **All 7 `commands/` files removed — the plugin is skills-only (ADR-0001, executed via FUP-4).** Breaking change vs `v1.10.1`: the `/wiki:fix-issues`, `/wiki:handoff`, `/wiki`, `/save`, `/canvas`, `/autoresearch`, and `/doc-pipeline` slash-commands no longer exist. **Migration (audit V-3):** trigger the same behavior via natural language or the skills. The 2 substantive commands are now the `wiki-issues` skill (say "handoff" / "synthesize issues" to push, "fix issues" / "work the top issue" to pop); the 5 thin wrappers were already backed by their same-named skills (`wiki`, `save`, `canvas`, `autoresearch`, `doc-pipeline`). No `plugin.json` / `marketplace.json` change (commands were never enumerated there).
 
 ## [1.10.1] - 2026-06-21
 

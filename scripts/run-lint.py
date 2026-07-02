@@ -76,6 +76,27 @@ _lint_title_overlap = _load_lint_module("lint-title-overlap")
 _lint_deps = _load_lint_module("lint-deps")
 _lint_programs = _load_lint_module("lint-programs")
 
+
+def _load_module_by_path(name: str, path: Path):
+    """Load a module from an explicit path (not SCRIPT_DIR). Returns None if the
+    file is absent — used for skill-colocated validators (ADR-0002) that may not
+    exist in a bare vault."""
+    if not path.is_file():
+        return None
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+# open_issues validator lives under its owning skill (ADR-0005), colocated per
+# ADR-0002 — not in scripts/. Load it by path; None when the skill is absent.
+_lint_open_issues = _load_module_by_path(
+    "lint_open_issues",
+    REPO_ROOT / "skills" / "wiki-issues" / "scripts" / "lint-open-issues.py",
+)
+
 EXIT_USAGE = 2
 
 # Wikilink ERE used by the shell (grep -rEho '\[\[[^]]+\]\]').
@@ -402,6 +423,24 @@ def run_programs(wiki_root: Path, vault_root: Path) -> dict[str, int]:
     }
 
 
+def run_open_issues(vault_root: Path) -> int:
+    """In-process validation of the wiki/meta/OPEN-ISSUES.md issue stack via
+    skills/wiki-issues/scripts/lint-open-issues.py (owned by the wiki-issues
+    skill, ADR-0005; colocated per ADR-0002). Gated on the module being
+    importable; the validator treats an ABSENT OPEN-ISSUES.md as zero errors
+    (the file is optional until the skill initializes it). Returns the error
+    count (schema / parity / cycles / sort / referential-integrity)."""
+    if _lint_open_issues is None:
+        return 0
+    try:
+        d = _lint_open_issues.collect(vault_root)
+    except Exception:
+        return 0
+    if not isinstance(d, dict):
+        return 0
+    return int(d.get("error_count", 0))
+
+
 # --- summary assembly ------------------------------------------------------
 
 
@@ -432,6 +471,7 @@ def build_summary(date: str, vault_root: Path, wiki_root: Path,
     prog_errors = (
         int(prog["unknown_codes"]) + int(prog["missing_home_pages"])
     )
+    oi_errors = int(raw.get("oi_errors", 0))
 
     checks = [
         {"name": "spaced_filenames", "severity": "error",
@@ -473,6 +513,10 @@ def build_summary(date: str, vault_root: Path, wiki_root: Path,
          "unknown_codes": int(prog["unknown_codes"]),
          "missing_home_pages": int(prog["missing_home_pages"]),
          "triage_tasks": int(prog["triage_tasks"]),
+         "items": []},
+        {"name": "open_issues",
+         "severity": "error" if oi_errors > 0 else "info",
+         "count": oi_errors,
          "items": []},
     ]
 
@@ -638,6 +682,7 @@ def main(argv: list[str]) -> int:
 
         dag = run_dag(wiki_root, vault_root)
         prog = run_programs(wiki_root, vault_root)
+        oi_errors = run_open_issues(vault_root)
 
         raw = {
             "spaced_filenames_items": spaced_filenames_items,
@@ -651,6 +696,7 @@ def main(argv: list[str]) -> int:
             "term_warn": term_warn,
             "dag": dag,
             "prog": prog,
+            "oi_errors": oi_errors,
         }
 
         summary = build_summary(

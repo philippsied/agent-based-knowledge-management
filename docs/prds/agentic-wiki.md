@@ -38,7 +38,7 @@ The Agentic Wiki turns Claude + Obsidian into a **persistent, compounding knowle
 ## 4. Scope  ‹What / What-not›
 
 **In scope**
-- The **skill suite** (14 skills): ingest, query, lint, save, autoresearch, research-brief, doc-pipeline, defuddle, canvas, obsidian-bases, obsidian-markdown, visualize, and the `wiki` router.
+- The **skill suite** (15 skills): ingest, query, lint, save, autoresearch, research-brief, doc-pipeline, defuddle, canvas, obsidian-bases, obsidian-markdown, visualize, wiki-issues, and the `wiki` router.
 - **Setup / bootstrap**: `bin/setup-vault.py`, `bin/setup-multi-agent.py`, the plugin manifest (`.claude-plugin/plugin.json`), marketplace (`marketplace.json`), and the `Makefile` targets.
 - **Lifecycle hooks** (5) including the write-safety gate and wiki auto-commit.
 - **Quality tooling**: the `lint-*` scripts, the `run-lint.py` aggregator, the pytest suite, the evals harness, and the GitHub Actions workflows.
@@ -84,8 +84,8 @@ The Agentic Wiki turns Claude + Obsidian into a **persistent, compounding knowle
 
 ## 7. Risks & open questions
 
-- **Commands ⇄ skills duplication.** ADR-0001 ("delete commands, skills-only") is *accepted* but **not executed**: 7 command files still coexist with the skills — 5 are thin wrappers, but `commands/wiki/fix-issues.md` and `commands/wiki/handoff.md` are substantive and need a skill home first.
-- **Inventory drift.** `.github/copilot-instructions.md` still says "13 skills" while 14 exist on disk (`visualize` is undocumented). There is no single source of truth for the skill count.
+- **Commands ⇄ skills duplication — resolved (FUP-4).** ADR-0001 ("delete commands, skills-only") is now *executed*: all 7 `commands/` files were removed after the 2 substantive ones (`fix-issues`, `handoff`) were migrated into the `wiki-issues` skill (coverage matrix proves in-skill parity) and the 5 wrappers were confirmed skill-redundant.
+- **Inventory drift (FUP-5, open).** Skill-count literals still disagree across surfaces (README/copilot count the shipped/committed set, this PRD additionally counts `visualize`, present on disk but untracked). FUP-4 added `wiki-issues` (+1 to each surface's own baseline). Establishing a single source of truth for the count + a lint/test guard remains FUP-5.
 - **`_attachments/` absent.** The directory is referenced in `CLAUDE.md` and `.gitignore` but does not exist on disk.
 - **No local pre-commit gate.** `.pre-commit-config.yaml` is absent; quality is enforced in CI and via the hook, but not at commit time locally (roadmap PR3a/PR3b territory).
 - **Cross-agent write path depends on user MCP config.** Without a shipped server, non-Claude agents' direct write access is user-configured and unverified in CI.

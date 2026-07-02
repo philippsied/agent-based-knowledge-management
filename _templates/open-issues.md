@@ -72,8 +72,11 @@ issues are removed entirely (stack item + body section); history lives in [[log]
 - **P2** — Background; pick when P0/P1 empty.
 - **P3** — Nice-to-have; archive if untouched after one quarter.
 
-## Section whitelist
-`enforcement` · `lint` · `vault-content` · `tooling` · `templates` · `skill-plugin` · `eval-observability`
+## Section whitelist (12 — reconciled, audit V-6)
+`enforcement` · `lint` · `tooling` · `ci` · `hooks` · `docs` · `templates` · `skills` ·
+`skill-plugin` · `vault-content` · `eval-observability` · `dragonscale`
+<!-- Canonical copy: skills/wiki-issues/references/open-issues-template.md. Body `## <section>` blocks below are illustrative — use any whitelist section. -->
+
 
 Each issue is a `### I-YYYY-NNN — Title` subsection under its `## <section>` block, whose id
 matches a `stack[].id` exactly. The first body line is the meta line
