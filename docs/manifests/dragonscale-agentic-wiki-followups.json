@@ -84,6 +84,35 @@
       ],
       "verify": "AC1-AC7 met; lint-open-issues wired into run-lint",
       "session": null
+    },
+    {
+      "id": "value-prd-adr-edits",
+      "type": "task",
+      "path": "docs/prds/agentic-wiki.md",
+      "status": "verified",
+      "depends_on": [],
+      "parallel_safe": true,
+      "answers": [
+        "was",
+        "wie",
+        "done"
+      ],
+      "verify": "V-3 requirement in agentic-wiki PRD; V-5 binary acceptance in dragonscale PRD; ADR-0001 migration consequence noted",
+      "session": null
+    },
+    {
+      "id": "fup-11",
+      "type": "task",
+      "path": "docs/tasks/dragonscale-agentic-wiki-followups.md",
+      "status": "verified",
+      "depends_on": [],
+      "parallel_safe": true,
+      "answers": [
+        "was",
+        "done"
+      ],
+      "verify": "ADR/PRD heading-language policy applied or waived per file; manifest token-mapping documented",
+      "session": null
     }
   ]
 }

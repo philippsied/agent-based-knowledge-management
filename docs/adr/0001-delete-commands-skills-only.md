@@ -31,6 +31,7 @@ migriert, danach die command-Dateien gelöscht — künftig Skills-only.
 **Gut:** eine Quelle des Verhaltens; kein Drift; weniger Wartungsoberfläche.
 **Schlecht / Kosten:** `/slash`-UX entfällt (Nutzer triggern per natürlicher Sprache / Skill-Auto-Trigger); `handoff` braucht Skill-Heimat; jedes command-Verhalten muss VOR Löschung als in-Skill-vorhanden nachgewiesen werden.
 **Folge-Arbeiten:** Coverage-Matrix in spec-commands; Skill-Heimat für `handoff` (Fold vs. neu); `fix-issues`→`wiki-lint` fix-forward; docs die `/commands` erwähnen aktualisieren.
+**Breaking-Change (released Plugin):** Das Löschen der Commands ist ein Breaking-Change für das bereits veröffentlichte Plugin (`v1.10.1`); der user-facing Migrationsweg (CHANGELOG-Deprecation + `wiki-issues`-Äquivalent) gehört zu FUP-4 (Audit V-3).
 
 ---
 ### Checkliste

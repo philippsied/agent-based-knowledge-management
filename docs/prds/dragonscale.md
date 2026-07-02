@@ -85,6 +85,7 @@ These are structural, not cosmetic: each compounds with vault size. DragonScale 
 
 ### Checklist (before status: approved)
 - [x] All four mechanisms verified against shipped scripts (docs audit, 2026-07-01)
+- [ ] G0 "strictly optional" asserted by a test/lint proving each mechanism (fold, addresses, tiling) is skippable and the vault returns to base behavior when disabled (audit V-5, via FUP-8)
 - [ ] Success metrics G1–G4 expressed as CI/lint assertions
 - [ ] Reversible disable path documented end-to-end
 - [ ] Counter-start inconsistency (setup-dragonscale vs setup-vault) resolved
