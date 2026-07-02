@@ -45,7 +45,11 @@ def main() -> None:
     # vault initializes its own counter and legacy-pages manifest on first run.
     counter = vault / ".vault-meta" / "address-counter.txt"
     if not counter.is_file():
-        counter.write_text("0\n")
+        # Seed 1 = canonical start (ADR-0004): read-then-increment allocator makes
+        # the first allocated address c-000001. A 0 seed silently yields c-000000
+        # (off-by-one; the allocator's [0-9]+ guard accepts 0, no error). Matches
+        # bin/setup-dragonscale.py. Regression-guarded by tests/test_setup_provisioning.py.
+        counter.write_text("1\n")
 
     legacy = vault / ".vault-meta" / "legacy-pages.txt"
     if not legacy.is_file():
