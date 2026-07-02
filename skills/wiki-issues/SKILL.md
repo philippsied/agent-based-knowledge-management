@@ -103,6 +103,9 @@ Extract issues from the session (user messages, tool outputs, own observations) 
 - **Not raw session state.** "we were debugging X when context ran out" belongs in working notes.
 - **Aggregated when convergent.** 3+ new issues sharing one root → one bundled issue, not near-duplicates.
 
+Choose `section` from the 12-item whitelist. If an issue honestly fits none, **propose a new section to
+the user before filing** — never invent one silently.
+
 Per issue: one **stack item** (`priority` default P2, user may override e.g. "handoff P1"; `blocked_by`
 default `[]`, set an id if prose says "only after X"; `pushed` = today) + one **body section** under the
 matching `## <section>`:

@@ -14,7 +14,7 @@ verified present). They carry no unique logic. → **covered by the pre-existing
 | # | Command behavior | Source | SKILL.md anchor | Covered |
 |---|---|---|---|---|
 | H1 | Dual hybrid data model (YAML stack + body sections) | L13–24 | `## Data model` | ✅ |
-| H2 | Section whitelist | L26–38 | `Section whitelist (12)` + template | ✅ reconciled 7→12 (V-6) |
+| H2 | Section whitelist + "propose a new section first" consent gate | L26–38 | `## Data model` whitelist + push `### P2` (inline consent line) + template | ✅ reconciled 7→12 (V-6); consent gate inline in push |
 | H3 | Pre-conditions: git dirty → ABORT; log commit hash | L40–45 | `## Pre-conditions` 1–2 | ✅ |
 | H4 | Read structure + ID counter (stack + aggregated_from + `wiki/log.md` scan → max+1; no recycle) | L47–57 | push `### P1` | ✅ |
 | H5 | Synthesis criteria (concrete · WO-anchor · not session-state · aggregate convergent) | L59–78 | push `### P2` | ✅ |
