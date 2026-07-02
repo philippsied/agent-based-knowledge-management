@@ -85,7 +85,7 @@ The Agentic Wiki turns Claude + Obsidian into a **persistent, compounding knowle
 ## 7. Risks & open questions
 
 - **Commands ⇄ skills duplication — resolved (FUP-4).** ADR-0001 ("delete commands, skills-only") is now *executed*: all 7 `commands/` files were removed after the 2 substantive ones (`fix-issues`, `handoff`) were migrated into the `wiki-issues` skill (coverage matrix proves in-skill parity) and the 5 wrappers were confirmed skill-redundant.
-- **Inventory drift (FUP-5, open).** Skill-count literals still disagree across surfaces (README/copilot count the shipped/committed set, this PRD additionally counts `visualize`, present on disk but untracked). FUP-4 added `wiki-issues` (+1 to each surface's own baseline). Establishing a single source of truth for the count + a lint/test guard remains FUP-5.
+- **Inventory drift (FUP-5, resolved).** `visualize` is now shipped (git-tracked) and every surface reads **15 skills**. The single source of truth is the tracked `skills/*/SKILL.md` set; `tests/test_skill_count_ssot.py` (wired into `make test`) fails if any count literal or skill enumeration drifts from that set.
 - **`_attachments/` absent.** The directory is referenced in `CLAUDE.md` and `.gitignore` but does not exist on disk.
 - **No local pre-commit gate.** `.pre-commit-config.yaml` is absent; quality is enforced in CI and via the hook, but not at commit time locally (roadmap PR3a/PR3b territory).
 - **Cross-agent write path depends on user MCP config.** Without a shipped server, non-Claude agents' direct write access is user-configured and unverified in CI.

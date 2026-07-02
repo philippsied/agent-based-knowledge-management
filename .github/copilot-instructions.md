@@ -10,7 +10,7 @@ This repository is a **Claude Code plugin and Obsidian vault** that builds persi
 
 ## Repository Layout
 
-- `skills/`: 14 skills (`autoresearch`, `canvas`, `defuddle`, `doc-pipeline`, `obsidian-bases`, `obsidian-markdown`, `research-brief`, `save`, `wiki`, `wiki-fold`, `wiki-ingest`, `wiki-issues`, `wiki-lint`, `wiki-query`), each with a `SKILL.md` defining trigger phrases and instructions (count excludes the untracked `visualize`; skill-count SSOT is FUP-5)
+- `skills/`: 15 skills (`autoresearch`, `canvas`, `defuddle`, `doc-pipeline`, `obsidian-bases`, `obsidian-markdown`, `research-brief`, `save`, `visualize`, `wiki`, `wiki-fold`, `wiki-ingest`, `wiki-issues`, `wiki-lint`, `wiki-query`), each with a `SKILL.md` defining trigger phrases and instructions (count is guarded by `tests/test_skill_count_ssot.py` — the tracked `skills/*/SKILL.md` set is the single source of truth)
 - `hooks/hooks.json`: Claude Code lifecycle hooks (SessionStart, PostCompact, PostToolUse, Stop)
 - `.claude-plugin/plugin.json`: plugin manifest
 - `wiki/`: generated knowledge base (Markdown files with YAML frontmatter)

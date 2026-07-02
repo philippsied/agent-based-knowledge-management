@@ -123,6 +123,9 @@ evals/results/
 # Only the directory anchors (.gitkeep) and shared default config remain tracked.
 /wiki/*
 !/wiki/.gitkeep
+# visualize skill output — ephemeral HTML decks/infographics + companion stubs,
+# regenerable from the skill; already covered by /wiki/* above, kept explicit for intent.
+wiki/visualizations/
 /.raw/*
 !/.raw/.gitkeep
 .vault-meta/address-counter.txt
