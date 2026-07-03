@@ -1,12 +1,12 @@
 ---
 title: SPEC — Repo consolidation to 2.0.0 (Claude-only, no history migration)
-status: G2 GREEN — S1–S5 done (multi-agent removed + guard repointed; release lint-gate scoped to distribution + regression test; CHANGELOG [2.0.0]; `make test` exit 0; no tag); awaiting go for G3
+status: G3 GREEN — S1–S8 done (+ docs/DECISION-LOG.md refute-judge PASS; 5 handoffs pruned; project memory consolidated + index consistent); awaiting go for G4 (final verify + push checkpoint)
 repo: /Users/philipp/AI-powered_workbench/agent-based-knowledge-management
 base_commit: 2d8daca
 branch: main
 author: simple-sdd session 2026-07-02
 inputs:
-  - .handoff/2026-07-02-repo-upgrade-auf-2-0-0-abschliessen-voll.md
+  - .handoff/2026-07-02-repo-upgrade-auf-2-0-0-abschliessen-voll.md  (driving handoff; consumed → pruned in S6, durable content captured in docs/DECISION-LOG.md)
   - docs/manifests/dragonscale-agentic-wiki-followups.json
   - tests/test_skill_count_ssot.py (guard — surfaces coupled to multi-agent files)
 scope_contract_fixed_2026-07-02:
@@ -75,8 +75,8 @@ Extract every content block UNIQUE to `AGENTS.md` / `GEMINI.md` / `.github/copil
 - **AC3:** `.claude-plugin/plugin.json` version NOT bumped (stays pre-2.0.0 until the tag session) — consistent with "prepare, not tag".
 
 ### S6 — Prune disposable work-states  (dep: S7 — content captured first)
-- **AC1:** the 4 `.handoff/*.md` removed.
-- **AC2:** no tracked file references a removed handoff path (`rg` clean).
+- **AC1:** all `.handoff/*.md` removed (evidence: 5 files present, not 4 as the handoff stated).
+- **AC2:** `.handoff/` is gitignored (untracked local process artifacts — `.gitignore:139`), so pruning leaves no git-level dangling reference. No tracked file carries a broken markdown/wikilink to a pruned handoff; the residual mentions are `inputs:` provenance (frontmatter strings) and grep-exclusion patterns, not file dependencies.
 - **AC3:** `docs/plans/**`, executed `docs/specs/**`, `docs/audit/**` PRESERVED (decision-log source until migration) — presence-checked, NOT deleted this session.
 
 ### S7 — Durable Change + Decision log  (dep: none; feeds S6)
