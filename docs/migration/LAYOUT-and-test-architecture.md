@@ -39,7 +39,7 @@ agentic-knowledge-steward/
 consumers. `plugin/bin/setup-vault.py` provisions a *fresh* vault in the user's location — the repo-root
 vault skeleton is only for local dev/demo.
 
-## 2. Group → destination map (covers all 202 files without re-listing each)
+## 2. Group → destination map (covers all 206 files without re-listing each)
 
 | Source group | → Destination | Note |
 |---|---|---|

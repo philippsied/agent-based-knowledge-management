@@ -1,10 +1,10 @@
 # Clean-Start Migration — File-by-File Inventory
 
-**Source repo:** `agentic-knowledge-management` (this repo, `main` @ `ff6ee8f`, 202 tracked files)
+**Source repo:** `agentic-knowledge-management` (this repo, `main` @ `0415194`, 206 tracked files)
 **Target repo:** `agentic-knowledge-steward` (GitLab `curated-agent-os/…`, empty, 0 commits)
 **As-of:** 2026-07-06. **Companions:** [`SPEC`](../specs/SPEC-1.0.0-clean-start-migration.md) · [`LAYOUT-and-test-architecture.md`](LAYOUT-and-test-architecture.md) · [`PACKAGING-and-skill-integration.md`](PACKAGING-and-skill-integration.md)
 
-Every one of the 202 tracked files is listed below with an explicit **disposition** and a
+Every one of the 206 tracked files is listed below with an explicit **disposition** and a
 **rationale** (why it matters for the new repo / why it is baggage). Nothing is copied blind.
 
 > **Target layout (see LAYOUT doc for the full map).** The dispositions below are **orthogonal to relocation**: a KEEP/SCRUB file also moves to its new home — plugin runtime → `plugin/**` (`.claude-plugin, skills, hooks, agents, scripts, lib, bin, references, _templates`); dev tooling → `engineering/**` (`tests, evals`); docs + Obsidian-vault skeleton + repo-meta stay at root. Disposition = *does it survive & what changes*; location = *where it lands*.
@@ -247,8 +247,8 @@ These live with the **archive** (old repo → Private) as the migration recipe; 
 
 | | Count |
 |---|------:|
-| Source tracked files | 202 |
-| DROP (baggage + `marketplace.json`) | −53 |
+| Source tracked files | 206 |
+| DROP (baggage + `marketplace.json`) | −57 |
 | ATTRIBUTION.md folded → ORIGIN.md | −1 |
 | NEW `ORIGIN.md` + `foundational-principles.md` | +2 |
 | NEW `engineering/tests/_paths.py` + `engineering/test-architecture.md` | +2 |
@@ -256,8 +256,9 @@ These live with the **archive** (old repo → Private) as the migration recipe; 
 | `DECISION-LOG.md`→`LEARNINGS.md` rename · relocation into `plugin/`+`engineering/`+skill-owners | ±0 |
 | **Expected target tracked files** | **≈ 157** |
 
-DROP (53) = `.github/workflows`(3) + docs loose(4) + audit(11) + manifests(4) + plans(9) + prds(2: `cmd-script-consolidation` + folded `dragonscale`) + specs(10) + tasks(6) + templates(1) + test-designs(1) + releases(1) + `.claude-plugin/marketplace.json`(1) = **53**.
-The S6 AC is **path-based** (every DROP path absent, every KEEP/SCRUB/TRANSFORM path present, both NEW files present, `ATTRIBUTION.md`/`DECISION-LOG.md`/`dragonscale.md`/`marketplace.json` absent) — the ≈150 figure is a cross-check, not the gate.
+DROP (57) = `.github/workflows`(3) + docs loose(4) + audit(11) + manifests(4) + plans(9) + prds(2: `cmd-script-consolidation` + folded `dragonscale`) + specs(11) + tasks(6) + templates(1) + test-designs(1) + releases(1) + migration(3) + `.claude-plugin/marketplace.json`(1) = **57**.
+The extra 4 vs. the `ff6ee8f` snapshot are this SDD bundle itself (`docs/specs/SPEC-1.0.0` + `docs/migration/`×3), added in `0415194` — planning artifacts, not shipped.
+The S6 AC is **path-based** (every DROP path absent, every KEEP/SCRUB/TRANSFORM path present, both NEW files present, `ATTRIBUTION.md`/`DECISION-LOG.md`/`dragonscale.md`/`marketplace.json` absent) — the ≈157 figure is a cross-check, not the gate.
 
 ## Resolved at G-spec (2026-07-06)
 

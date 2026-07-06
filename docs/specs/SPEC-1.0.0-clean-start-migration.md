@@ -30,7 +30,7 @@ Each AC is a command or a yes/no check. "PASS" requires the cited evidence.
 
 ### S1 — Inventory completeness
 Every tracked source file has exactly one disposition with a rationale.
-- **AC1.1** Distinct file paths in `INVENTORY-clean-start.md` == `git ls-files | wc -l` (**202**); zero unclassified.
+- **AC1.1** Every tracked path (`git ls-files | wc -l` == **206**) is classified in `INVENTORY-clean-start.md` — via a per-file row or an explicit directory-group rule; zero unclassified.
 - **AC1.2** Every disposition ∈ {KEEP, SCRUB, TRANSFORM, DROP, NEW}.
 
 ### S2 — Heritage-scrub map is exhaustive & correct
@@ -57,9 +57,9 @@ Every heritage-token occurrence is routed: rebrand, strip, → `ORIGIN.md`, or l
 - **AC5.4** `python bin/sync-versions.py --check` (or equivalent) reports version consistency at `1.0.0` against the reduced surface.
 
 ### S6 — Legacy-baggage drop *(exec-time)*
-- **AC6.1** Every path in the inventory DROP set (**53** — the 52 baggage files + `.claude-plugin/marketplace.json`) is **absent** from the target.
+- **AC6.1** Every path in the inventory DROP set (**57** — the 56 baggage/planning files + `.claude-plugin/marketplace.json`) is **absent** from the target.
 - **AC6.2** Every KEEP/SCRUB/TRANSFORM path is **present** (relocated per S10 — `plugin/…` or `engineering/…`); NEW files present: root `ORIGIN.md`, `plugin/references/operational-rules/foundational-principles.md`, `engineering/tests/_paths.py`, `engineering/test-architecture.md`; absent: `ATTRIBUTION.md`, `DECISION-LOG.md`, `dragonscale.md`, `marketplace.json`.
-- **AC6.3** Cross-check: target `git ls-files | wc -l` ≈ **152** (≈150 + `_paths.py` + `test-architecture.md`; relocation into `plugin/`/`engineering/` does not change counts). Path-based ACs above are the gate; the number is a sanity check.
+- **AC6.3** Cross-check: target `git ls-files | wc -l` ≈ **157** (206 − 57 DROP − 1 ATTRIBUTION-fold + 9 NEW; relocation into `plugin/`/`engineering/` does not change counts). Path-based ACs above are the gate; the number is a sanity check.
 
 ### S7 — Forensic Learnings doc *(exec-time)*
 - **AC7.1** `docs/LEARNINGS.md` present in target (renamed from `DECISION-LOG.md`), scrubbed of heritage tokens (S2.3 applies). No stale `DECISION-LOG.md` remains; inbound refs (chiefly `CLAUDE.md`) repointed.
@@ -119,7 +119,7 @@ Design + caller graph: [`PACKAGING-and-skill-integration.md`](../migration/PACKA
 **Rules:** execution never crosses a red gate. Between green gates, run autonomously. Each **G-push** action is individually confirmed (irreversible, outward-facing) — not batched.
 
 ## Verification plan (S6 discipline — "detection is not a verdict")
-- Scrub ACs (S2.3, S3.3) are **grep commands** run against the target tree — evidence, not assertion.
+- Scrub ACs (S2.3, S3.3) are **`rg` commands** run against the target tree — evidence, not assertion.
 - `make test` exit code is the S8 oracle.
 - A second model is prompted to **refute** each of S2–S7 against these ACs before G-verify closes.
 - Preconditions checked at reliance: target repo empty (verified 2026-07-06), source tree clean, no secrets in the 52 archive commits (security-review before G-push ①).
