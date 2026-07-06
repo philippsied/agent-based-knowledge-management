@@ -43,7 +43,7 @@ When `/autoresearch` is invoked WITHOUT a topic AND the vault has a research que
 Feature detection (shell):
 
 ```bash
-if [ -f wiki/meta/research-queue.md ] && [ -x scripts/lint/lint-deps.py ]; then
+if [ -f wiki/meta/research-queue.md ] && [ -f scripts/lint-deps.py ]; then
   QUEUE_MODE=1
 else
   QUEUE_MODE=0
@@ -57,8 +57,8 @@ When `QUEUE_MODE=1`:
    Refusing to start: R-YYYY-NNN is still in-progress (started YYYY-MM-DD).
    Mark it done/queued first, or pass an explicit topic argument.
    ```
-2. **Validate the DAG**: run `python3 scripts/lint/lint-deps.py`. If exit code != 0 (cycles, missing deps, or duplicate IDs), refuse to start and surface the lint output. The queue must be clean.
-3. **Compute ready set**: run `python3 scripts/lint/lint-deps.py --ready`. This returns IDs of tasks where `status: queued` AND all `depends_on:` are `done`, in priority order (P0 first, then FIFO by `created`).
+2. **Validate the DAG**: run `python3 scripts/lint-deps.py`. If exit code != 0 (cycles, missing deps, or duplicate IDs), refuse to start and surface the lint output. The queue must be clean.
+3. **Compute ready set**: run `python3 scripts/lint-deps.py --ready`. This returns IDs of tasks where `status: queued` AND all `depends_on:` are `done`, in priority order (P0 first, then FIFO by `created`).
 4. **Helper failure handling**: if the helper exits non-zero, emits no output, or returns an empty list, set `QUEUE_MODE=0` and fall through to section C below. Do NOT improvise a topic.
 5. **Brief presence enforcement**: read the queue table to resolve the top ID. If its `Brief` cell is `_to brief_` or empty:
    - **No-args invocation** (queue-driven selection): skip to the next ready ID. If no ready task has a brief, fall through to C.
@@ -259,7 +259,7 @@ sources:
    - Flip `status: in-progress` → `status: done`.
    - Set `finished: <today>`, bump `updated:`.
    - Append `deliverables:` links pointing at every page created in this run.
-   - Re-run `python3 scripts/lint/lint-deps.py` to confirm the DAG is still clean and to print the new ready set.
+   - Re-run `python3 scripts/lint-deps.py` to confirm the DAG is still clean and to print the new ready set.
 5. **Append a commit-suggestion block to `wiki/meta/pending-commits.md`** (create the file from `wiki/_templates/pending-commits.md` if missing; new blocks go at the TOP, log-style). The block clusters the run's outputs into Conventional Commit-shaped proposals so the user — or a later commit hook — can ship them in one pass.
 
    Use the in-memory list of pages produced by this run AND `git status --porcelain` to build the file list. Do not include paths the run did not touch.
