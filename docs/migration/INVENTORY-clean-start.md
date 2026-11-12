@@ -31,7 +31,7 @@ Every one of the 206 tracked files is listed below with an explicit **dispositio
 **Rebrand token map** (applied wherever SCRUB says "rebrand"):
 `agentic-knowledge-management` → `agentic-knowledge-steward` ·
 `agent-based-knowledge-management` (old GitHub repo) → `agentic-knowledge-steward` ·
-`akm-marketplace` → `aks-marketplace` · `github.com/philippsied/…` → `gitlab.com/curated-agent-os/agentic-knowledge-steward` ·
+`akm-marketplace` → `aks-marketplace` · `github.com/philippsied/…` → `gitlab.com/prism-purpose-pace/curated-agent-os/agentic-knowledge-steward` ·
 `v1.10.1` / `1.10.1` / `2.0.0` → `1.0.0`.
 
 **Heritage-strip tokens** (removed everywhere except `ORIGIN.md`):
